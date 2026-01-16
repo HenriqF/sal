@@ -48,15 +48,14 @@ void dirCopy(char* orig, char* dest){
     FindClose(hFind);
 }
 
+
+
 int createCheckDir(char* dest){
     if (!(CreateDirectory(dest, NULL) || GetLastError() == ERROR_ALREADY_EXISTS)){
-        printf("falho");
         return -1;
     } 
     return 0;
 }
-
-
 
 void criarDirRegistro(char* path){
     if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
@@ -99,9 +98,97 @@ void criarDirRegistro(char* path){
 
 
 
-void newBuild(char* orig, char* dest){
+void hashCopyBuild(char* orig, char* dest, char* conteudo){
+    WIN32_FIND_DATA fd;
+    char fonte_path[MAX_PATH];
+    char dest_path[MAX_PATH];
+    CreateDirectory(dest, NULL);
 
+    sprintf(fonte_path, "%s\\*", orig);
+    HANDLE hFind = FindFirstFile(fonte_path, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
+            sprintf(fonte_path, "%s\\%s", orig, fd.cFileName);
+            sprintf(dest_path, "%s\\%s", dest, fd.cFileName);
+
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                hashCopyBuild(fonte_path, dest_path, conteudo);
+            } 
+            else{
+                FILE* f = fopen(fonte_path, "rb");
+                char hash[41];
+                getFileHash(f, hash);
+                fclose(f);
+
+                char file_path[MAX_PATH];
+                sprintf(file_path, "%s\\%s",conteudo, hash);
+
+                DWORD at = GetFileAttributesA(file_path);
+                if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
+
+                    CopyFile(fonte_path, file_path, FALSE);
+                    printf("\ncopiado: %s -> %s", fonte_path, file_path);
+                }
+
+                f = fopen(dest_path, "wb");
+                writeFile(f, hash);
+                fclose(f);
+            }
+        }
+    } while(FindNextFile(hFind, &fd));
+
+    FindClose(hFind);
 }
+
+int newBuild(char* orig, char* dest){
+    char buildPath[MAX_PATH];
+    char conteudoPath[MAX_PATH];
+    char salverPath[MAX_PATH];
+    char newVerPath[MAX_PATH];
+    sprintf(buildPath, "%s\\build", dest);
+    sprintf(conteudoPath, "%s\\conteudo", dest);
+    sprintf(salverPath, "%s\\salver", buildPath);
+
+    char* content;
+    size_t sz = 0;
+
+    FILE* salf = fopen(salverPath, "rb");
+    readFile(salf, &sz, &content);
+    fclose(salf);
+    int current_ver = atoi(content);
+
+    sprintf(newVerPath, "%s\\%d", buildPath, current_ver+1);
+    if(createCheckDir(newVerPath) != 0){
+        printf("deu erro salvando.");
+        return -1;
+    }
+
+    printf("%s",newVerPath);
+
+    char new_ver[30];
+    sprintf(new_ver, "%d", current_ver+1);
+
+    salf = fopen(salverPath, "wb");
+    writeFile(salf, new_ver);
+    fclose(salf);
+
+    hashCopyBuild(orig, newVerPath, conteudoPath);
+
+
+    //Ler path/build/salver 
+    //Criar nova pasta (np)
+
+
+    //Copiar tudo de origem para path/build/np
+    //ir arquivo por arquivo dentro de np.
+    //       obter hash do arquivo
+    //       se hash nao estiver dentro de path/conteudo, criar novo arquivo nomeado hash com o conteudo.
+    //       remover tudo dentro do arquivo e colocar a hash.
+    return 0;
+}
+
 
 int main(int argc, char** argv){
     if (argc == 1){
@@ -114,10 +201,13 @@ int main(int argc, char** argv){
     if (argc == 2){
         char origin[MAX_PATH];
         GetCurrentDirectoryA(MAX_PATH, origin);
-        printf("%s", origin);
+
+        char dest[MAX_PATH];
+        sprintf(dest, "%s\\%s", DEST, argv[1]);
+
+        newBuild(origin, dest);
     }
     else if (argc == 3){
-
         if (strcmp(argv[1], "new") == 0){
             char regDest[MAX_PATH] = "";
             sprintf(regDest, "%s\\%s", DEST, argv[2]);
