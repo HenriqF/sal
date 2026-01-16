@@ -4,8 +4,7 @@
 #include "readwrite.h"
 #include <openssl/sha.h>
 
-#define DEST "D:\\salvaguarda"
-
+#define DEST "D:\\testes"
 
 int getFileHash(FILE* f, char hash[41]){
     size_t size;
@@ -22,7 +21,7 @@ int getFileHash(FILE* f, char hash[41]){
     return 0;
 }
 
-void copy(char* orig, char* dest){
+void dirCopy(char* orig, char* dest){
     WIN32_FIND_DATA fd;
     char fontePath[MAX_PATH];
     char destPath[MAX_PATH];
@@ -38,7 +37,7 @@ void copy(char* orig, char* dest){
             sprintf(destPath, "%s\\%s", dest, fd.cFileName);
 
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                copy(fontePath, destPath);
+                dirCopy(fontePath, destPath);
             } 
             else{
                 CopyFile(fontePath, destPath, FALSE);
@@ -57,29 +56,90 @@ int createCheckDir(char* dest){
     return 0;
 }
 
-int main(int argc, char** argv){
-    if (argc < 2 || argc > 2){
-        printf("Coloca o nome da pasta do registro.");
-        return 1;
+
+
+void criarDirRegistro(char* path){
+    if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
+        printf("Reg ja existe.");
+        return;
     }
 
-    char origin[MAX_PATH];
-    GetCurrentDirectoryA(MAX_PATH, origin);
+    if(!CreateDirectory(path, NULL)){
+        printf("erro");
+        return;
+    }
+    char contentPath[MAX_PATH];
+    char buildPath[MAX_PATH];
+    sprintf(contentPath, "%s\\conteudo", path);
+    sprintf(buildPath, "%s\\build", path);
 
-    char regDest[MAX_PATH] = "";
-    sprintf(regDest, "%s\\%s", DEST, argv[1]);
+    if(!CreateDirectory(contentPath, NULL)){
+        printf("erro");
+        return;
+    }
+    if(!CreateDirectory(buildPath, NULL)){
+        printf("erro");
+        return;
+    }
+
+    sprintf(buildPath, "%s\\build\\salver", path);
+
+    FILE* f = fopen(buildPath, "w");
+    if (!f){
+        printf("erro");
+        return;
+    }
+    fprintf(f, "0");
+    fclose(f);
+
+
+    printf("Criado novo registro: %s", path);
+    return;
+}
+
+
+
+void newBuild(char* orig, char* dest){
+
+}
+
+int main(int argc, char** argv){
+    if (argc == 1){
+        printf("Sem args.");
+        return 0;
+    }
 
     createCheckDir(DEST);
-    createCheckDir(regDest);
 
+    if (argc == 2){
+        char origin[MAX_PATH];
+        GetCurrentDirectoryA(MAX_PATH, origin);
+        printf("%s", origin);
+    }
+    else if (argc == 3){
 
+        if (strcmp(argv[1], "new") == 0){
+            char regDest[MAX_PATH] = "";
+            sprintf(regDest, "%s\\%s", DEST, argv[2]);
+            criarDirRegistro(regDest);
+            
+            return 0;
+        }
 
+    }
 
-    FILE* f = fopen("porraloca.txt", "rb");
-    char hash[41];
-    getFileHash(f, hash);
-    printf("%s sigma", hash);
-    fclose(f);
+    
+
+    
+        
+
+    
+
+    //FILE* f = fopen("porraloca.txt", "rb");
+    //char hash[41];
+    //getFileHash(f, hash);
+    //printf("%s sigma", hash);
+    //fclose(f);
 
     return 0;
 }
