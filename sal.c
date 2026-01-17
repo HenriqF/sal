@@ -12,12 +12,12 @@ int getFileHash(FILE* f, char hash[41]){
     readFile(f, &size, &content);
 
     unsigned char out[SHA_DIGEST_LENGTH]; 
-    SHA1((unsigned char*)content, strlen(content), out);
+    SHA1((unsigned char*)content, size, out);
 
     for(int i = 0; i < SHA_DIGEST_LENGTH; i++) {
         sprintf(hash+i*2, "%02x", out[i]);
     }
-
+    free(content);
     return 0;
 }
 
