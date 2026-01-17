@@ -49,7 +49,6 @@ void dirCopy(char* orig, char* dest){
 }
 
 
-
 int createCheckDir(char* dest){
     if (!(CreateDirectory(dest, NULL) || GetLastError() == ERROR_ALREADY_EXISTS)){
         return -1;
@@ -95,7 +94,6 @@ void criarDirRegistro(char* path){
     printf("Criado novo registro: %s", path);
     return;
 }
-
 
 
 void hashCopyBuild(char* orig, char* dest, char* conteudo){
@@ -176,16 +174,6 @@ int newBuild(char* orig, char* dest){
 
     hashCopyBuild(orig, newVerPath, conteudoPath);
 
-
-    //Ler path/build/salver 
-    //Criar nova pasta (np)
-
-
-    //Copiar tudo de origem para path/build/np
-    //ir arquivo por arquivo dentro de np.
-    //       obter hash do arquivo
-    //       se hash nao estiver dentro de path/conteudo, criar novo arquivo nomeado hash com o conteudo.
-    //       remover tudo dentro do arquivo e colocar a hash.
     return 0;
 }
 
@@ -217,19 +205,6 @@ int main(int argc, char** argv){
         }
 
     }
-
-    
-
-    
-        
-
-    
-
-    //FILE* f = fopen("porraloca.txt", "rb");
-    //char hash[41];
-    //getFileHash(f, hash);
-    //printf("%s sigma", hash);
-    //fclose(f);
 
     return 0;
 }
