@@ -4,7 +4,7 @@
 #include "readwrite.h"
 #include <openssl/sha.h>
 
-#define DEST "D:\\testes"
+#define DEST "D:\\sv"
 
 int getFileHash(FILE* f, char hash[41]){
     size_t size;
@@ -236,6 +236,7 @@ int loadBuild(char* orig, char* dest){
 }
 
 
+
 int main(int argc, char** argv){
     if (argc == 1){
         printf("Sem args.");
@@ -261,12 +262,9 @@ int main(int argc, char** argv){
             return 0;
         }
         else if (strcmp(argv[1], "load") == 0){
-            char testpath[MAX_PATH] = "D:\\aaaa";
-            createCheckDir(testpath);
-
             char regOrig[MAX_PATH] = "";
             sprintf(regOrig, "%s\\%s", DEST, argv[2]);
-            loadBuild(regOrig, testpath);
+            loadBuild(regOrig, ppath);
 
             return 0;
         }
