@@ -178,6 +178,64 @@ int newBuild(char* orig, char* dest){
 }
 
 
+void hashLoadBuild(char* orig, char* dest, char* conteudo){
+    WIN32_FIND_DATA fd;
+    char fonte_path[MAX_PATH];
+    char dest_path[MAX_PATH];
+    CreateDirectory(dest, NULL);
+
+    sprintf(fonte_path, "%s\\*", orig);
+    HANDLE hFind = FindFirstFile(fonte_path, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
+            sprintf(fonte_path, "%s\\%s", orig, fd.cFileName);
+            sprintf(dest_path, "%s\\%s", dest, fd.cFileName);
+
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                hashLoadBuild(fonte_path, dest_path, conteudo);
+            } 
+            else{
+                char* content_hold;
+                size_t size = 0;
+                FILE* f = fopen(fonte_path, "rb");
+                readFile(f, &size, &content_hold);
+                fclose(f);
+
+                char file_content_path[MAX_PATH];
+                sprintf(file_content_path, "%s\\%s", conteudo, content_hold);
+                free(content_hold);
+
+                CopyFile(file_content_path, dest_path, FALSE);
+            }
+        }
+    } while(FindNextFile(hFind, &fd));
+
+    FindClose(hFind);
+}
+
+int loadBuild(char* orig, char* dest){
+    char salver_path[MAX_PATH];
+    sprintf(salver_path, "%s\\build\\salver", orig);
+
+    char* content;
+    size_t size = 0;
+    FILE* f = fopen(salver_path, "rb");
+    readFile(f, &size, &content);
+    fclose(f);
+    
+    char build_path[MAX_PATH];
+    char conteudo_path[MAX_PATH];
+    sprintf(build_path, "%s\\build\\%s", orig, content);
+    sprintf(conteudo_path, "%s\\conteudo", orig);
+
+    free(content);
+
+    hashLoadBuild(build_path, dest, conteudo_path);
+}
+
+
 int main(int argc, char** argv){
     if (argc == 1){
         printf("Sem args.");
@@ -185,15 +243,14 @@ int main(int argc, char** argv){
     }
 
     createCheckDir(DEST);
-
+    char ppath[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, ppath);
+    
     if (argc == 2){
-        char origin[MAX_PATH];
-        GetCurrentDirectoryA(MAX_PATH, origin);
-
         char dest[MAX_PATH];
         sprintf(dest, "%s\\%s", DEST, argv[1]);
-
-        newBuild(origin, dest);
+        
+        newBuild(ppath, dest);
     }
     else if (argc == 3){
         if (strcmp(argv[1], "new") == 0){
@@ -201,6 +258,16 @@ int main(int argc, char** argv){
             sprintf(regDest, "%s\\%s", DEST, argv[2]);
             criarDirRegistro(regDest);
             
+            return 0;
+        }
+        else if (strcmp(argv[1], "load") == 0){
+            char testpath[MAX_PATH] = "D:\\aaaa";
+            createCheckDir(testpath);
+
+            char regOrig[MAX_PATH] = "";
+            sprintf(regOrig, "%s\\%s", DEST, argv[2]);
+            loadBuild(regOrig, testpath);
+
             return 0;
         }
 
