@@ -215,24 +215,33 @@ void hashLoadBuild(char* orig, char* dest, char* conteudo){
     FindClose(hFind);
 }
 
-int loadBuild(char* orig, char* dest){
+int loadBuild(char* orig, char* dest, int ver){
     char salver_path[MAX_PATH];
     sprintf(salver_path, "%s\\build\\salver", orig);
 
-    char* content;
-    size_t size = 0;
-    FILE* f = fopen(salver_path, "rb");
-    readFile(f, &size, &content);
-    fclose(f);
-    
     char build_path[MAX_PATH];
+    if (ver >= 0){
+        sprintf(build_path, "%s\\build\\%d", orig, ver);
+    }
+    else{
+        char* content;
+        size_t size = 0;
+        FILE* f = fopen(salver_path, "rb");
+        readFile(f, &size, &content);
+        fclose(f);
+        sprintf(build_path, "%s\\build\\%s", orig, content);
+        free(content);
+    }
+
     char conteudo_path[MAX_PATH];
-    sprintf(build_path, "%s\\build\\%s", orig, content);
     sprintf(conteudo_path, "%s\\conteudo", orig);
 
-    free(content);
-
-    hashLoadBuild(build_path, dest, conteudo_path);
+    if (GetFileAttributesA(build_path) != INVALID_FILE_ATTRIBUTES) {
+        hashLoadBuild(build_path, dest, conteudo_path);
+        return 0;
+    }
+    printf("Build nao existe.");
+    return -1;
 }
 
 
@@ -253,7 +262,7 @@ int main(int argc, char** argv){
         
         newBuild(ppath, dest);
     }
-    else if (argc == 3){
+    else if (argc >= 3){
         if (strcmp(argv[1], "new") == 0){
             char regDest[MAX_PATH] = "";
             sprintf(regDest, "%s\\%s", DEST, argv[2]);
@@ -264,7 +273,12 @@ int main(int argc, char** argv){
         else if (strcmp(argv[1], "load") == 0){
             char regOrig[MAX_PATH] = "";
             sprintf(regOrig, "%s\\%s", DEST, argv[2]);
-            loadBuild(regOrig, ppath);
+
+            int n = -1;
+            if (argc >= 4){
+                n = atoi(argv[3]);
+            }
+            loadBuild(regOrig, ppath, n);
 
             return 0;
         }
