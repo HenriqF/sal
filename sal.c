@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include "readwrite.h"
 #include <openssl/sha.h>
+#include "readwrite.h"
 
 #define DEST "D:\\sv"
 
@@ -245,14 +245,48 @@ int loadBuild(char* orig, char* dest, int ver){
 }
 
 
+void listRegistros(){
+    WIN32_FIND_DATA fd;
+
+    char dirReg[MAX_PATH];
+    sprintf(dirReg, "%s\\*", DEST);
+
+    HANDLE hFind = FindFirstFile(dirReg, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                printf("Registro %s -> ", fd.cFileName);
+
+                char dirSalver[MAX_PATH];
+                sprintf(dirSalver, "%s\\%s\\build\\salver", DEST, fd.cFileName);
+
+                char* content;
+                size_t size = 0;
+                FILE* f = fopen(dirSalver, "rb");
+                readFile(f, &size, &content);
+                fclose(f);
+
+                printf("versão %s\n", content);
+
+            } 
+        }
+    } while(FindNextFile(hFind, &fd));
+
+    FindClose(hFind);
+}
+
 
 int main(int argc, char** argv){
+    SetConsoleOutputCP(CP_UTF8);
+    createCheckDir(DEST);
+
     if (argc == 1){
-        printf("Sem args.");
+        listRegistros();
         return 0;
     }
-
-    createCheckDir(DEST);
+    
     char ppath[MAX_PATH];
     GetCurrentDirectoryA(MAX_PATH, ppath);
     
@@ -282,7 +316,6 @@ int main(int argc, char** argv){
 
             return 0;
         }
-
     }
 
     return 0;
