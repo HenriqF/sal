@@ -6,6 +6,31 @@
 
 #define DEST "D:\\sv"
 
+static int ignore_exes = 1;
+static char dotexe[] = ".exe"; 
+
+#define M_NEW 0x01
+#define M_LOAD 0x02
+#define M_EXE 0x04
+
+int endsWith(char* a, char* b){
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+
+    if (lb > la) return 0;
+
+    return memcmp(a+(la-lb), b, lb) == 0;
+}
+
+int startsWith(char* a, char* b){
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+
+    if (lb > la) return 0;
+
+    return memcmp(a, b, lb) == 0;
+}
+
 int getFileHash(FILE* f, char hash[41]){
     size_t size;
     char* content;
@@ -113,8 +138,8 @@ void hashCopyBuild(char* orig, char* dest, char* conteudo){
 
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
                 hashCopyBuild(fonte_path, dest_path, conteudo);
-            } 
-            else{
+            }
+            else if (!(ignore_exes && endsWith(fd.cFileName, dotexe))){
                 FILE* f = fopen(fonte_path, "rb");
                 char hash[41];
                 getFileHash(f, hash);
@@ -289,33 +314,45 @@ int main(int argc, char** argv){
     
     char ppath[MAX_PATH];
     GetCurrentDirectoryA(MAX_PATH, ppath);
+    char regDir[MAX_PATH] = "";
+    sprintf(regDir, "%s\\%s", DEST, argv[argc-1]);
     
     if (argc == 2){
-        char dest[MAX_PATH];
-        sprintf(dest, "%s\\%s", DEST, argv[1]);
-        
-        newBuild(ppath, dest);
+        newBuild(ppath, regDir);
     }
-    else if (argc >= 3){
-        if (strcmp(argv[1], "new") == 0){
-            char regDest[MAX_PATH] = "";
-            sprintf(regDest, "%s\\%s", DEST, argv[2]);
-            criarDirRegistro(regDest);
+
+    else{
+        int modes = 0;
+        int load_flag_i = 0;
+
+        for (int i = 1; i < argc-1; i++){
+            if ((startsWith(argv[i], "-new") == 1)) modes |= M_NEW;
+            if ((startsWith(argv[i], "-load") == 1)) {modes |= M_LOAD; load_flag_i = i;}
+            if ((startsWith(argv[i], "-exe") == 1)) modes |= M_EXE;
+        }
+
+        if ((modes & M_NEW) == M_NEW){
+            criarDirRegistro(regDir);
+            return 0;
+        }
+
+        if ((modes & M_LOAD) == M_LOAD){
+            int n = -1;
+
+            char verString[15];
+            snprintf(verString, 15, "%s", argv[load_flag_i]+5);
+            if (verString[0] != '\0') n = atoi(verString);
+
+            loadBuild(regDir, ppath, n);
             
             return 0;
         }
-        else if (strcmp(argv[1], "load") == 0){
-            char regOrig[MAX_PATH] = "";
-            sprintf(regOrig, "%s\\%s", DEST, argv[2]);
 
-            int n = -1;
-            if (argc >= 4){
-                n = atoi(argv[3]);
-            }
-            loadBuild(regOrig, ppath, n);
-
-            return 0;
+        if ((modes & M_EXE) == M_EXE){
+            ignore_exes = 0;
         }
+
+        newBuild(ppath, regDir);
     }
 
     return 0;
