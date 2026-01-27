@@ -4,7 +4,8 @@
 #include <openssl/sha.h>
 #include "readwrite.h"
 
-#define DEST "D:\\testes"
+#define DEST "D:\\sv"
+#define VER "27.01.2026.2"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
@@ -58,7 +59,7 @@ int createCheckDir(char* dest){
 
 void criarDirRegistro(char* path){
     if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
-        printf("Reg ja existe.");
+        printf("Registro ja existe.");
         return;
     }
 
@@ -130,7 +131,7 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
 
                         CopyFile(fonte_path, file_path, FALSE);
-                        printf("\ncopiado: %s -> %s", fonte_path, file_path);
+                        printf("\nCopiado: %s -> %s", fonte_path, file_path);
                     }
 
                     f = fopen(dest_path, "wb");
@@ -177,11 +178,11 @@ int newBuild(char* orig, char* dest){
 
     snprintf(newVerPath, MAX_PATH, "%s\\%d", buildPath, current_ver+1);
     if(createCheckDir(newVerPath) != 0){
-        printf("deu erro salvando.");
+        printf("Registro não existe.");
         return -1;
     }
 
-    printf("%s",newVerPath);
+    printf("Nova build: %s",newVerPath);
 
     char new_ver[30];
     snprintf(new_ver, (size_t)30, "%d", current_ver+1);
@@ -265,6 +266,8 @@ int main(int argc, char** argv){
     createCheckDir(DEST);
 
     if (argc == 1){
+        printf("salvaguarda versão %s\n", VER);
+
         listRegistros();
         return 0;
     }
