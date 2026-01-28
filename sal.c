@@ -4,8 +4,13 @@
 #include <openssl/sha.h>
 #include "readwrite.h"
 
+#define BLUE    "\x1b[34m"
+#define PURPLE  "\x1b[35m"
+#define ORANGE  "\x1b[38;5;208m"
+#define RESET   "\x1b[0m"
+
 #define DEST "D:\\sv"
-#define VER "27.01.2026.2"
+#define VER "28.01.2026.1"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
@@ -239,7 +244,7 @@ void listRegistros(){
     do {
         if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                printf("Registro %s -> ", fd.cFileName);
+                printf("Registro "BLUE "%s" RESET " -> ", fd.cFileName);
 
                 char dirSalver[MAX_PATH];
                 snprintf(dirSalver, MAX_PATH, "%s\\%s\\build\\salver", DEST, fd.cFileName);
@@ -266,9 +271,10 @@ int main(int argc, char** argv){
     createCheckDir(DEST);
 
     if (argc == 1){
-        printf("salvaguarda versão %s\n", VER);
+        printf(BLUE "salvaguarda " RESET "versão " BLUE "%s\n\n" RESET, VER);
 
         listRegistros();
+        printf("\n");
         return 0;
     }
     
