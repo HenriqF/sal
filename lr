@@ -1,3 +1,2 @@
 gcc sal.c readwrite.c -o sal -lssl -lcrypto
-echo pronto.
-.\sal
+.\sal && .\sal -new t && .\sal t && .\sal -Ssigma t && .\sal -Sporra -exe t

@@ -10,7 +10,7 @@
 #define RESET   "\x1b[0m"
 
 #define DEST "D:\\sv"
-#define VER "28.01.2026.1"
+#define VER "02.02.2026.1"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
@@ -18,6 +18,7 @@ static char dotexe[] = ".exe";
 #define M_NEW 0x01
 #define M_LOAD 0x02
 #define M_EXE 0x04
+#define M_SPC 0x08
 
 
 int endsWith(char* a, char* b){
@@ -201,13 +202,38 @@ int newBuild(char* orig, char* dest){
     return 0;
 }
 
-int loadBuild(char* orig, char* dest, int ver){
+int newSpecialBuild(char* orig, char* dest, char* nome){
+    char buildPath[MAX_PATH];
+    char conteudoPath[MAX_PATH];
+    char newVerPath[MAX_PATH];
+
+    snprintf(buildPath, MAX_PATH, "%s\\build", dest);
+    snprintf(conteudoPath, MAX_PATH, "%s\\conteudo", dest);
+    snprintf(newVerPath, MAX_PATH, "%s\\%s", buildPath, nome);
+
+    if (GetFileAttributesA(newVerPath) != INVALID_FILE_ATTRIBUTES) {
+        printf("Build ja existe.");
+        return -1;
+    }
+
+    if(createCheckDir(newVerPath) != 0){
+        printf("Registro não existe.");
+        return -1;
+    }
+    
+    printf("Nova build: %s",newVerPath);
+    hashCLBuild(orig, newVerPath, conteudoPath, 1);
+    
+    return 0;
+}
+
+int loadBuild(char* orig, char* dest, char* ver){
     char salver_path[MAX_PATH];
     snprintf(salver_path, MAX_PATH, "%s\\build\\salver", orig);
 
     char build_path[MAX_PATH];
-    if (ver >= 0){
-        snprintf(build_path, MAX_PATH, "%s\\build\\%d", orig, ver);
+    if (strlen(ver) != 0){
+        snprintf(build_path, MAX_PATH, "%s\\build\\%s", orig, ver);
     }
     else{
         char* content;
@@ -283,42 +309,53 @@ int main(int argc, char** argv){
     char regDir[MAX_PATH] = "";
     snprintf(regDir, MAX_PATH, "%s\\%s", DEST, argv[argc-1]);
     
+    int special_flag_index = 0;
+
     if (argc == 2){
         newBuild(ppath, regDir);
+        return 0;
     }
 
     else{
         int modes = 0;
-        int load_flag_i = 0;
 
         for (int i = 1; i < argc-1; i++){
-            if ((startsWith(argv[i], "-new") == 1)) modes |= M_NEW;
-            if ((startsWith(argv[i], "-load") == 1)) {modes |= M_LOAD; load_flag_i = i;}
-            if ((startsWith(argv[i], "-exe") == 1)) modes |= M_EXE;
+            if ((startsWith(argv[i], "-new") == 1)){
+                criarDirRegistro(regDir);
+                return 0;
+            }
+            else if ((startsWith(argv[i], "-load") == 1)){
+
+                char ver_string[50];
+                snprintf(ver_string, (size_t)50, "%s", argv[i]+5);
+
+                loadBuild(regDir, ppath, ver_string);
+                
+                return 0;
+            } 
+           
+           
+            //flags que podem ir juntas
+            else if ((startsWith(argv[i], "-S") == 1)){
+                special_flag_index = i;
+                modes |= M_SPC;
+            }
+            else if ((startsWith(argv[i], "-exe") == 1)) modes |= M_EXE;
         }
-
-        if ((modes & M_NEW) == M_NEW){
-            criarDirRegistro(regDir);
-            return 0;
-        }
-
-        if ((modes & M_LOAD) == M_LOAD){
-            int n = -1;
-
-            char verString[15];
-            snprintf(verString, (size_t)15, "%s", argv[load_flag_i]+5);
-            if (verString[0] != '\0') n = atoi(verString);
-
-            loadBuild(regDir, ppath, n);
-            
-            return 0;
-        }
+        
 
         if ((modes & M_EXE) == M_EXE){
             ignore_exes = 0;
         }
 
-        newBuild(ppath, regDir);
+        if ((modes & M_SPC) == M_SPC){
+            char nome_build[50];
+            snprintf(nome_build, (size_t)50, "%s", argv[special_flag_index]+2);
+            newSpecialBuild(ppath, regDir, nome_build);
+        }
+        else{
+            newBuild(ppath, regDir);
+        }
     }
 
     return 0;
