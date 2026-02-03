@@ -1,16 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <openssl/sha.h>
-#include "readwrite.h"
+#include "util.h"
 
-#define BLUE    "\x1b[34m"
-#define PURPLE  "\x1b[35m"
-#define ORANGE  "\x1b[38;5;208m"
-#define RESET   "\x1b[0m"
-
-#define DEST "D:\\sv"
-#define VER "02.02.2026.1"
+#define DEST "D:\\teste"
+#define VER "02.02.2026.2"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
@@ -19,25 +10,6 @@ static char dotexe[] = ".exe";
 #define M_LOAD 0x02
 #define M_EXE 0x04
 #define M_SPC 0x08
-
-
-int endsWith(char* a, char* b){
-    size_t la = strlen(a);
-    size_t lb = strlen(b);
-
-    if (lb > la) return 0;
-
-    return memcmp(a+(la-lb), b, lb) == 0;
-}
-
-int startsWith(char* a, char* b){
-    size_t la = strlen(a);
-    size_t lb = strlen(b);
-
-    if (lb > la) return 0;
-
-    return memcmp(a, b, lb) == 0;
-}
 
 int getFileHash(FILE* f, char hash[41]){
     size_t size;
@@ -53,7 +25,6 @@ int getFileHash(FILE* f, char hash[41]){
     free(content);
     return 0;
 }
-
 
 
 int createCheckDir(char* dest){
@@ -103,8 +74,6 @@ void criarDirRegistro(char* path){
 }
 
 
-
-
 void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
     WIN32_FIND_DATA fd;
     char fonte_path[MAX_PATH];
@@ -143,6 +112,9 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     f = fopen(dest_path, "wb");
                     writeFile(f, hash);
                     fclose(f);
+                }
+                else{
+                    printf(RED "\nIgnorado arquivo: " RESET "%s", fonte_path);
                 }
             }
             else{

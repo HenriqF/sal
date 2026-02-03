@@ -1,2 +1,2 @@
-gcc sal.c readwrite.c -o sal -lssl -lcrypto
-.\sal && .\sal -new t && .\sal t && .\sal -Ssigma t && .\sal -Sporra -exe t
+gcc sal.c util.c -o sal -lssl -lcrypto
+.\sal
