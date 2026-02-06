@@ -1,2 +1,4 @@
 gcc sal.c util.c -o sal -lssl -lcrypto
 .\sal
+echo ....
+.\sal -view t

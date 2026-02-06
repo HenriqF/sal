@@ -1,15 +1,16 @@
 #include "util.h"
 
-#define DEST "D:\\teste"
-#define VER "02.02.2026.2"
+char DEST[MAX_PATH] = "D:\\teste";
+#define VER "06.02.2026.1"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
 
-#define M_NEW 0x01
-#define M_LOAD 0x02
-#define M_EXE 0x04
-#define M_SPC 0x08
+#define M_NEW 0x01 //
+#define M_LOAD 0x02 //
+#define M_EXE 0x04 //incluir .exes ao salvar
+#define M_SPC 0x08 //criar build especial
+#define M_VIEW 0x16 //visualizar builds do regis
 
 int getFileHash(FILE* f, char hash[41]){
     size_t size;
@@ -229,7 +230,7 @@ int loadBuild(char* orig, char* dest, char* ver){
 }
 
 
-
+//visualizacao
 void listRegistros(){
     WIN32_FIND_DATA fd;
 
@@ -262,7 +263,46 @@ void listRegistros(){
     FindClose(hFind);
 }
 
+void listBuilds(char* reg){
+    char build_path[MAX_PATH];
+    snprintf(build_path, MAX_PATH, "%s\\build\\*", reg);
 
+    WIN32_FIND_DATA fd;
+    HANDLE hFind = FindFirstFile(build_path, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+
+    int build_count = 0;
+    do {
+        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..") && (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
+            build_count++;
+            
+            int normal_file = 1;
+            for (size_t i = 0 ; i < strlen(fd.cFileName); i++){
+                if (!(fd.cFileName[i] >= '0' && fd.cFileName[i] <= '9')){
+                    printf("    Build -> " PURPLE "%s\n" RESET, fd.cFileName);
+                    normal_file = 0;
+                    break;
+                }
+            }
+            if (normal_file) printf("    Build -> " BLUE "%s\n" RESET, fd.cFileName);
+
+
+            if (build_count%10 == 0){
+                printf("Continuar listando? (s/n)");
+
+                char r = getchar();
+                while (getchar() != '\n');
+                if (r != 'S' && r != 's') goto stop_searching;
+            }
+        }
+    } while(FindNextFile(hFind, &fd));
+
+    stop_searching:
+    FindClose(hFind);
+}
+
+//------------
 
 int main(int argc, char** argv){
     SetConsoleOutputCP(CP_UTF8);
@@ -305,7 +345,10 @@ int main(int argc, char** argv){
                 
                 return 0;
             } 
-           
+            else if ((startsWith(argv[i], "-view") == 1)){
+                listBuilds(regDir);
+                return 0;
+            }
            
             //flags que podem ir juntas
             else if ((startsWith(argv[i], "-S") == 1)){
