@@ -1,7 +1,7 @@
 #include "util.h"
 
-char DEST[MAX_PATH] = "D:\\teste";
-#define VER "06.02.2026.1"
+char DEST[MAX_PATH];
+#define VER "08.02.2026.2"
 
 static int ignore_exes = 1;
 static char dotexe[] = ".exe"; 
@@ -305,9 +305,33 @@ void listBuilds(char* reg){
 //------------
 
 int main(int argc, char** argv){
-    SetConsoleOutputCP(CP_UTF8);
-    createCheckDir(DEST);
+    char program_path[MAX_PATH];
+    char config_path[MAX_PATH];
+    GetModuleFileNameA(NULL, program_path, MAX_PATH);
+    *strrchr(program_path, '\\') = '\0';
+    snprintf(config_path, MAX_PATH, "%s\\svconfig.txt", program_path);
 
+    //lendo svconfig
+    char** svconfig_lines;
+    size_t line_count;
+    FILE* f = fopen(config_path, "rb");
+    if (!f){
+        printf("Sem arquivo svconfig...");
+        return 0;
+    }
+    getFileLines(f, &svconfig_lines, &line_count);
+    fclose(f);
+    //decidir o que fazer com a oinformacao files
+    if (line_count > 0){
+        strcpy(DEST, svconfig_lines[0]);
+    }
+
+    //-----
+    SetConsoleOutputCP(CP_UTF8);
+    if (createCheckDir(DEST) != 0){
+        printf("Falha em criar / achar diretorio destino (primeira linha svconfig)");
+        return 0;
+    }
     if (argc == 1){
         printf(BLUE "salvaguarda " RESET "versão " BLUE "%s\n\n" RESET, VER);
 
@@ -357,7 +381,6 @@ int main(int argc, char** argv){
             }
             else if ((startsWith(argv[i], "-exe") == 1)) modes |= M_EXE;
         }
-        
 
         if ((modes & M_EXE) == M_EXE){
             ignore_exes = 0;

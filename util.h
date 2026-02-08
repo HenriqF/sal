@@ -18,4 +18,6 @@ int startsWith(char* a, char* b);
 int readFile(FILE* f, size_t* size, char** content);
 int writeFile(FILE* f, char* content);
 
+int getFileLines(FILE* f, char*** lines, size_t* qtd_linhas);
+
 #endif
