@@ -1,3 +1,2 @@
 gcc sal.c util.c -o sal -lssl -lcrypto
 .\sal
-rm sal
