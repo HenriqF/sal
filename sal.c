@@ -1,7 +1,8 @@
 #include "util.h"
 
 char DEST[MAX_PATH];
-#define VER "24.02.2026.1"
+char ARG_REG[MAX_PATH];
+#define VER "24.02.2026.2"
 
 int ignore_exes = 1;
 
@@ -139,6 +140,19 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
 }
 
 int newBuild(char* orig, char* dest){
+    char* last_slash_orig = strrchr(orig, '\\');
+    char orig_folder_name[MAX_PATH];
+    snprintf(orig_folder_name, MAX_PATH, last_slash_orig+1);
+
+    if (strcmp(orig_folder_name, ARG_REG) != 0){
+        char resposta;
+        printf(RED "/!\\" RESET " Mandar '" RED "%s" RESET "' para '" RED "%s" RESET"'? (s/n): ", orig_folder_name, ARG_REG);
+        scanf("%c", &resposta);
+        if (resposta != 's' && resposta != 'S') return -1;
+    }
+
+
+
     char buildPath[MAX_PATH];
     char conteudoPath[MAX_PATH];
     char salverPath[MAX_PATH];
@@ -333,6 +347,7 @@ int main(int argc, char** argv){
     char reg_path[MAX_PATH];
     GetCurrentDirectoryA(MAX_PATH, proj_path);
     snprintf(reg_path, MAX_PATH, "%s\\%s", DEST, argv[argc-1]);
+    snprintf(ARG_REG, MAX_PATH, "%s", argv[argc-1]);
     //----------------------------
 
 
