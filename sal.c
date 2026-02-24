@@ -1,7 +1,7 @@
 #include "util.h"
 
 char DEST[MAX_PATH];
-#define VER "09.02.2026.1"
+#define VER "24.02.2026.1"
 
 int ignore_exes = 1;
 
@@ -9,7 +9,7 @@ int ignore_exes = 1;
 #define M_LOAD 0x02 //carregar porraloca
 #define M_EXE 0x04 //incluir .exes ao salvar
 #define M_SPC 0x08 //criar build especial
-#define M_VIEW 0x16 //visualizar builds do regis
+#define M_VIEW 0x10 //visualizar builds do regis
 
 //dirs
 int createCheckDir(char* dest){
@@ -342,6 +342,7 @@ int main(int argc, char** argv){
         printf("\n");
         return 0;
     }    
+
     else if (argc == 2){
         newBuild(proj_path, reg_path);
         return 0;
