@@ -1,6 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+
+#include "util.h"
+
 
 int endsWith(char* a, char* b){
     size_t la = strlen(a);
@@ -76,16 +76,59 @@ int getFileLines(FILE* f, char*** lines, size_t* qtd_linhas){//limite de 200 lin
         if (a-1 >= 0 && content[a-1] == '\n') offset++;
         if (a-2 >= 0 && content[a-2] == '\r') offset++;
 
-        char* new_line = malloc(line_size[i]-offset+1);
-        memcpy(new_line, content+last_index, line_size[i]-offset);
-        new_line[line_size[i]-offset] = '\0';
+        char* new_line;
+        if (offset < line_size[i]){
+            new_line = malloc(line_size[i]-offset+1);
+            memcpy(new_line, content+last_index, line_size[i]-offset);
+        }
 
+        new_line[line_size[i]-offset] = '\0';
         last_index += line_size[i];
 
         (*lines)[i] = new_line;
     }
+    
 
     (*qtd_linhas) = ++ls_index;
-
     return 0;
+}
+
+void msgExit(const char *fmt, ...){
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    exit(0);
+}
+
+
+void fileTravel(char* path, int recursion, int showfiles){
+    WIN32_FIND_DATA fd;
+    char new_path[MAX_PATH];
+    snprintf(new_path, MAX_PATH, "%s\\*", path);
+
+
+    HANDLE hFind = FindFirstFile(new_path, &fd);
+    if (hFind == INVALID_HANDLE_VALUE) return;
+
+    do {
+        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
+            for (int i = 1; i < recursion; i++){
+                printf("    ");
+            }
+            if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                printf(BLUE"/%s\n" RESET, fd.cFileName);
+                if (recursion > 0){
+                    char folder_path[MAX_PATH];
+                    snprintf(folder_path, MAX_PATH, "%s\\%s", path, fd.cFileName);
+                    fileTravel(folder_path, recursion+1, showfiles);
+                }
+            }
+            else if (showfiles){
+                printf("%s\n", fd.cFileName);
+            }
+        }
+    } while(FindNextFile(hFind, &fd));
+
+    FindClose(hFind);
 }

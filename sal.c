@@ -2,15 +2,17 @@
 
 char DEST[MAX_PATH];
 char ARG_REG[MAX_PATH];
-#define VER "24.02.2026.2"
+#define VER "10.03.2026.1"
 
 int ignore_exes = 1;
+int copy_messages = 0;
 
 #define M_NEW 0x01 //
 #define M_LOAD 0x02 //carregar porraloca
 #define M_EXE 0x04 //incluir .exes ao salvar
 #define M_SPC 0x08 //criar build especial
 #define M_VIEW 0x10 //visualizar builds do regis
+#define M_CPYMSG 0x20 // mostrar mensagems de copiar
 
 //dirs
 int createCheckDir(char* dest){
@@ -106,9 +108,9 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
 
                     DWORD at = GetFileAttributesA(file_path);
                     if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
-
                         CopyFile(fonte_path, file_path, FALSE);
-                        printf("\nCopiado: %s -> %s", fonte_path, file_path);
+                        if (copy_messages) printf("Copiado: %s -> %s\n", fonte_path, file_path);
+                        else printf(".");
                     }
 
                     f = fopen(dest_path, "wb");
@@ -116,7 +118,7 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     fclose(f);
                 }
                 else{
-                    printf(RED "\nIgnorado arquivo: " RESET "%s", fonte_path);
+                    if (copy_messages) printf(RED "Ignorado arquivo: " RESET "%s\n", fonte_path);
                 }
             }
             else{
@@ -175,7 +177,7 @@ int newBuild(char* orig, char* dest){
         return -1;
     }
 
-    printf("Nova build: %s",newVerPath);
+    printf("Nova build: %s\n",newVerPath);
 
     char new_ver[30];
     snprintf(new_ver, (size_t)30, "%d", current_ver+1);
@@ -208,7 +210,7 @@ int newSpecialBuild(char* orig, char* dest, char* nome){
         return -1;
     }
     
-    printf("Nova build: %s",newVerPath);
+    printf("Nova build: %s\n",newVerPath);
     hashCLBuild(orig, newVerPath, conteudoPath, 1);
     
     return 0;
@@ -245,6 +247,7 @@ int loadBuild(char* orig, char* dest, char* ver){
 
 
 //visualizacao
+
 void listRegistros(){
     WIN32_FIND_DATA fd;
 
@@ -277,79 +280,41 @@ void listRegistros(){
     FindClose(hFind);
 }
 
-void listBuilds(char* reg){
-    char build_path[MAX_PATH];
-    snprintf(build_path, MAX_PATH, "%s\\build\\*", reg);
+//Prog
+void init(){
+    SetConsoleOutputCP(CP_UTF8);
 
-    WIN32_FIND_DATA fd;
-    HANDLE hFind = FindFirstFile(build_path, &fd);
-    if (hFind == INVALID_HANDLE_VALUE) return;
-
-
-    int build_count = 0;
-    do {
-        if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..") && (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
-            build_count++;
-            
-            int normal_file = 1;
-            for (size_t i = 0 ; i < strlen(fd.cFileName); i++){
-                if (!(fd.cFileName[i] >= '0' && fd.cFileName[i] <= '9')){
-                    printf("    Build -> " PURPLE "%s\n" RESET, fd.cFileName);
-                    normal_file = 0;
-                    break;
-                }
-            }
-            if (normal_file) printf("    Build -> " BLUE "%s\n" RESET, fd.cFileName);
-
-
-            if (build_count%10 == 0){
-                printf("Continuar listando? (s/n)");
-
-                char r = getchar();
-                while (getchar() != '\n');
-                if (r != 'S' && r != 's') goto stop_searching;
-            }
-        }
-    } while(FindNextFile(hFind, &fd));
-
-    stop_searching:
-    FindClose(hFind);
-}
-
-
-int main(int argc, char** argv){
-    //----------------------------
-    char program_path[MAX_PATH]; //caminho do programa e svconfig
-    char config_path[MAX_PATH];
+    char program_path[MAX_PATH]; 
     GetModuleFileNameA(NULL, program_path, MAX_PATH);
     *strrchr(program_path, '\\') = '\0';
+
+    char config_path[MAX_PATH];
     snprintf(config_path, MAX_PATH, "%s\\svconfig.txt", program_path);
 
-    char** svconfig_lines; //lendo svconfig
+
+    char** svconfig_lines;
     size_t line_count;
+
     FILE* f = fopen(config_path, "rb");
-    if (!f){
-        printf("Sem arquivo svconfig...");
-        return 0;
-    }
+    if (!f) msgExit("Sem arquivo svconfig...");
+
     getFileLines(f, &svconfig_lines, &line_count);
     fclose(f);
     if (line_count > 0){
         strcpy(DEST, svconfig_lines[0]);
     }
 
-    SetConsoleOutputCP(CP_UTF8);//caminhos DEST, do projeto e do registro.
-    if (createCheckDir(DEST) != 0){
-        printf("Falha em criar / achar diretorio destino (primeira linha svconfig)");
-        return 0;
-    }
+    if (createCheckDir(DEST) != 0) msgExit("Falha em criar / achar diretorio destino (primeira linha svconfig)");
+}
+
+int main(int argc, char** argv){
     char proj_path[MAX_PATH];
     char reg_path[MAX_PATH];
+
+    init();
     GetCurrentDirectoryA(MAX_PATH, proj_path);
     snprintf(reg_path, MAX_PATH, "%s\\%s", DEST, argv[argc-1]);
     snprintf(ARG_REG, MAX_PATH, "%s", argv[argc-1]);
-    //----------------------------
-
 
     if (argc == 1){
         printf(BLUE "salvaguarda " RESET "versão " BLUE "%s\n\n" RESET, VER);
@@ -357,16 +322,15 @@ int main(int argc, char** argv){
         printf("\n");
         return 0;
     }    
-
     else if (argc == 2){
         newBuild(proj_path, reg_path);
         return 0;
     }
 
+    int flags = 0;
     int special_flag_index = 0;
     int load_flag_index = 0;
-    int flags = 0;
-
+    
     for (int i = 1; i < argc-1; i++){
         //muda algo
         if ((startsWith(argv[i], "-from") == 1)){
@@ -386,7 +350,17 @@ int main(int argc, char** argv){
             return 0;
         }
         else if ((startsWith(argv[i], "-view") == 1)){
-            listBuilds(reg_path);
+            char build_path[MAX_PATH];
+    
+            if (argv[i][5] != '\0'){
+                snprintf(build_path, MAX_PATH, "%s\\build\\%s", reg_path, argv[i]+5);
+                printf("\n");
+                fileTravel(build_path, 1, 1);
+                return 0;
+            }
+
+            snprintf(build_path, MAX_PATH, "%s\\build", reg_path, argv[i]+5);
+            fileTravel(build_path, 0, 0);
             return 0;
         }
         
@@ -401,6 +375,7 @@ int main(int argc, char** argv){
             flags |= M_SPC;
         }
         else if ((startsWith(argv[i], "-exe") == 1)) flags |= M_EXE;
+        else if ((startsWith(argv[i], "-msg") == 1)) flags |= M_CPYMSG;
     }
 
     //flags exclusivas
@@ -411,12 +386,15 @@ int main(int argc, char** argv){
         loadBuild(reg_path, proj_path, ver_string);
         return 0;
     }
-    //----------------
 
+
+    //nao exclusivas
     if ((flags & M_EXE) == M_EXE){
         ignore_exes = 0;
     }
-    // build especial ou normal
+    if ((flags & M_CPYMSG) == M_CPYMSG){
+        copy_messages = 1;
+    }
     if ((flags & M_SPC) == M_SPC){
         char nome_build[50];
         snprintf(nome_build, (size_t)50, "%s", argv[special_flag_index]+2);
