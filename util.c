@@ -40,6 +40,16 @@ int readFile(FILE* f, size_t* size, char** content){
     return 0;
 }
 
+int noMallocReadFile(FILE* f, size_t size, char* content){
+    if (!f || !size || !content) return -1;
+    if (fseek(f, 0, SEEK_SET) != 0) return -1;
+
+    size_t nread = fread(content, 1, size-1, f);
+    content[nread] = '\0';
+    return 0;
+}
+
+
 int writeFile(FILE* f, char* content){
     if (!f) return -1;
 

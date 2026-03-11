@@ -122,15 +122,15 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                 }
             }
             else{
-                char* content_hold;
-                size_t size = 0;
+                size_t size = 50;
+                char content_name[size];
+                
                 FILE* f = fopen(fonte_path, "rb");
-                readFile(f, &size, &content_hold);
+                noMallocReadFile(f, size, content_name);
                 fclose(f);
 
                 char file_content_path[MAX_PATH];
-                snprintf(file_content_path, MAX_PATH, "%s\\%s", conteudo, content_hold);
-                free(content_hold);
+                snprintf(file_content_path, MAX_PATH, "%s\\%s", conteudo, content_name);
 
                 CopyFile(file_content_path, dest_path, FALSE);
             }
