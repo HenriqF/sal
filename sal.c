@@ -2,7 +2,7 @@
 
 char DEST[MAX_PATH];
 char ARG_REG[MAX_PATH];
-#define VER "10.03.2026.1"
+#define VER "11.03.2026.2"
 
 int ignore_exes = 1;
 int copy_messages = 0;
@@ -64,9 +64,10 @@ void criarDirRegistro(char* path){
 
 //builds
 int getFileHash(FILE* f, char hash[41]){
-    size_t size;
-    char* content;
-    readFile(f, &size, &content);
+    static size_t size = 0;
+    static char* content;
+
+    staticGrowReadFile(f, &size, &content);
 
     unsigned char out[SHA_DIGEST_LENGTH]; 
     SHA1((unsigned char*)content, size, out);
@@ -74,7 +75,6 @@ int getFileHash(FILE* f, char hash[41]){
     for(int i = 0; i < SHA_DIGEST_LENGTH; i++) {
         sprintf(hash+i*2, "%02x", out[i]);
     }
-    free(content);
     return 0;
 }
 

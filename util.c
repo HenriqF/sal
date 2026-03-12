@@ -24,10 +24,10 @@ int readFile(FILE* f, size_t* size, char** content){
     if (!f || !size || !content) return -1;
 
     if (fseek(f, 0, SEEK_END) != 0) return -1;
-    long pos = ftell(f);
-    if (pos < 0) return -1;
+    long file_size = ftell(f);
+    if (file_size < 0) return -1;
 
-    *size = (size_t)pos;
+    *size = (size_t)file_size;
     if (fseek(f, 0, SEEK_SET) != 0) return -1;
 
     *content = malloc(*size + 1);
@@ -49,6 +49,30 @@ int noMallocReadFile(FILE* f, size_t size, char* content){
     return 0;
 }
 
+int staticGrowReadFile(FILE* f, size_t* size, char** content){
+    if (!f || !size || !content) return -1;
+
+    if (fseek(f, 0, SEEK_END) != 0) return -1;
+    long file_size = ftell(f);
+    if (file_size < 0) return -1;
+
+    if ((size_t)file_size > *size){
+        char* temp = realloc(*content, (size_t)file_size + 1);
+        if (!temp) return -1;
+
+        (*size) = (size_t)file_size;
+        (*content) = temp;
+    }
+
+    if (fseek(f, 0, SEEK_SET) != 0) return -1;
+    if (!*content) return -1;
+
+    size_t nread = fread(*content, 1, *size, f);
+    if (nread != *size)return -1;
+
+    (*content)[nread] = '\0';
+    return 0;
+}
 
 int writeFile(FILE* f, char* content){
     if (!f) return -1;
