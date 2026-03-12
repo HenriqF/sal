@@ -2,7 +2,7 @@
 
 char DEST[MAX_PATH];
 char ARG_REG[MAX_PATH];
-#define VER "11.03.2026.2"
+#define VER "12.03.2026.1"
 
 int ignore_exes = 1;
 int copy_messages = 0;
@@ -78,6 +78,9 @@ int getFileHash(FILE* f, char hash[41]){
     return 0;
 }
 
+
+int file_count;
+int files_done = 0;
 void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
     WIN32_FIND_DATA fd;
     char fonte_path[MAX_PATH];
@@ -110,7 +113,6 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
                         CopyFile(fonte_path, file_path, FALSE);
                         if (copy_messages) printf("Copiado: %s -> %s\n", fonte_path, file_path);
-                        else printf(".");
                     }
 
                     f = fopen(dest_path, "wb");
@@ -120,6 +122,8 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                 else{
                     if (copy_messages) printf(RED "Ignorado arquivo: " RESET "%s\n", fonte_path);
                 }
+                files_done++;
+                printf("%d/%d\r",files_done, file_count);
             }
             else{
                 size_t size = 50;
@@ -141,6 +145,7 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
     FindClose(hFind);
 }
 
+    //create
 int newBuild(char* orig, char* dest){
     char* last_slash_orig = strrchr(orig, '\\');
     char orig_folder_name[MAX_PATH];
@@ -153,8 +158,6 @@ int newBuild(char* orig, char* dest){
         if (resposta != 's' && resposta != 'S') return -1;
     }
 
-
-
     char buildPath[MAX_PATH];
     char conteudoPath[MAX_PATH];
     char salverPath[MAX_PATH];
@@ -164,10 +167,10 @@ int newBuild(char* orig, char* dest){
     snprintf(salverPath, MAX_PATH, "%s\\salver", buildPath);
 
     char* content;
-    size_t sz = 0;
+    size_t content_size = 0;
 
     FILE* salf = fopen(salverPath, "rb");
-    readFile(salf, &sz, &content);
+    readFile(salf, &content_size, &content);
     fclose(salf);
     int current_ver = atoi(content);
 
@@ -177,17 +180,19 @@ int newBuild(char* orig, char* dest){
         return -1;
     }
 
-    printf("Nova build: %s\n",newVerPath);
-
     char new_ver[30];
     snprintf(new_ver, (size_t)30, "%d", current_ver+1);
-
+    
     salf = fopen(salverPath, "wb");
     writeFile(salf, new_ver);
     fclose(salf);
-
-    hashCLBuild(orig, newVerPath, conteudoPath, 1);
     
+    file_count = fileTravel(orig, 1, 0, 0);
+    
+    printf("Nova build: %s\n",newVerPath);
+    hashCLBuild(orig, newVerPath, conteudoPath, 1);
+    printf("\n");
+
     return 0;
 }
 
@@ -210,12 +215,17 @@ int newSpecialBuild(char* orig, char* dest, char* nome){
         return -1;
     }
     
+    file_count = fileTravel(orig, 1, 0, 0);
+
     printf("Nova build: %s\n",newVerPath);
     hashCLBuild(orig, newVerPath, conteudoPath, 1);
     
+    printf("\n");
     return 0;
 }
 
+
+    //load
 int loadBuild(char* orig, char* dest, char* ver){
     char salver_path[MAX_PATH];
     snprintf(salver_path, MAX_PATH, "%s\\build\\salver", orig);
@@ -247,7 +257,6 @@ int loadBuild(char* orig, char* dest, char* ver){
 
 
 //visualizacao
-
 void listRegistros(){
     WIN32_FIND_DATA fd;
 
@@ -355,12 +364,12 @@ int main(int argc, char** argv){
             if (argv[i][5] != '\0'){
                 snprintf(build_path, MAX_PATH, "%s\\build\\%s", reg_path, argv[i]+5);
                 printf("\n");
-                fileTravel(build_path, 1, 1);
+                fileTravel(build_path, 1, 1, 1);
                 return 0;
             }
 
             snprintf(build_path, MAX_PATH, "%s\\build", reg_path, argv[i]+5);
-            fileTravel(build_path, 0, 0);
+            fileTravel(build_path, 0, 0 ,1);
             return 0;
         }
         

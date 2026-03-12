@@ -36,6 +36,6 @@ int getFileLines(FILE* f, char*** lines, size_t* qtd_linhas);
 
 void msgExit(const char *fmt, ...);
 
-void fileTravel(char* path, int recursion, int showfiles);
+int fileTravel(char* path, int recursion, int show_files, int show_folders);
 
 #endif

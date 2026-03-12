@@ -136,33 +136,42 @@ void msgExit(const char *fmt, ...){
 }
 
 
-void fileTravel(char* path, int recursion, int showfiles){
+int fileTravel(char* path, int recursion, int show_files, int show_folders){
+    int count = 0;
+
     WIN32_FIND_DATA fd;
     char new_path[MAX_PATH];
     snprintf(new_path, MAX_PATH, "%s\\*", path);
 
 
     HANDLE hFind = FindFirstFile(new_path, &fd);
-    if (hFind == INVALID_HANDLE_VALUE) return;
+    if (hFind == INVALID_HANDLE_VALUE) return 0;
 
     do {
         if (strcmp(fd.cFileName, ".") && strcmp(fd.cFileName, "..")){
-            for (int i = 1; i < recursion; i++){
-                printf("    ");
-            }
+            
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                printf(BLUE"/%s\n" RESET, fd.cFileName);
+                if (show_folders) {
+                    for (int i = 1; i < recursion; i++) printf("    ");
+                    printf(BLUE"/%s\n" RESET, fd.cFileName);
+                }
+
                 if (recursion > 0){
                     char folder_path[MAX_PATH];
                     snprintf(folder_path, MAX_PATH, "%s\\%s", path, fd.cFileName);
-                    fileTravel(folder_path, recursion+1, showfiles);
+                    count += fileTravel(folder_path, recursion+1, show_files, show_folders);
                 }
             }
-            else if (showfiles){
-                printf("%s\n", fd.cFileName);
+            else{
+                if (show_files){
+                    for (int i = 1; i < recursion; i++) printf("    ");
+                    printf("%s\n", fd.cFileName);
+                } 
+                count++;
             }
         }
     } while(FindNextFile(hFind, &fd));
 
     FindClose(hFind);
+    return count;;
 }
