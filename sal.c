@@ -1,11 +1,7 @@
 #include "util.h"
 
 char DEST[MAX_PATH];
-char ARG_REG[MAX_PATH];
-#define VER "12.03.2026.1"
-
-int ignore_exes = 1;
-int copy_messages = 0;
+char REGISTRO_LASTARG[MAX_PATH];
 
 #define M_NEW 0x01 //
 #define M_LOAD 0x02 //carregar porraloca
@@ -63,6 +59,14 @@ void criarDirRegistro(char* path){
 
 
 //builds
+int ignore_exes = 1;
+int copy_messages = 0;
+
+int file_count;
+int files_done = 0;
+int files_ignored = 0;
+int new_files = 0;
+
 int getFileHash(FILE* f, char hash[41]){
     static size_t size = 0;
     static char* content;
@@ -79,8 +83,6 @@ int getFileHash(FILE* f, char hash[41]){
 }
 
 
-int file_count;
-int files_done = 0;
 void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
     WIN32_FIND_DATA fd;
     char fonte_path[MAX_PATH];
@@ -112,7 +114,8 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     DWORD at = GetFileAttributesA(file_path);
                     if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
                         CopyFile(fonte_path, file_path, FALSE);
-                        if (copy_messages) printf("Copiado: %s -> %s\n", fonte_path, file_path);
+                        new_files++;
+                        if (copy_messages) printf("Copiado : %s -> %s\n", fonte_path, file_path);
                     }
 
                     f = fopen(dest_path, "wb");
@@ -120,10 +123,11 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     fclose(f);
                 }
                 else{
-                    if (copy_messages) printf(RED "Ignorado arquivo: " RESET "%s\n", fonte_path);
+                    if (copy_messages) printf(RED "Ignorado: " RESET "%s\n", fonte_path);
+                    files_ignored++;
                 }
                 files_done++;
-                printf("%d/%d\r",files_done, file_count);
+                if (!copy_messages) printf("Progresso:" BLUE " %d\% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
             }
             else{
                 size_t size = 50;
@@ -151,11 +155,11 @@ int newBuild(char* orig, char* dest){
     char orig_folder_name[MAX_PATH];
     snprintf(orig_folder_name, MAX_PATH, last_slash_orig+1);
 
-    if (strcmp(orig_folder_name, ARG_REG) != 0){
+    if (strcmp(orig_folder_name, REGISTRO_LASTARG) != 0){
         char resposta;
-        printf(RED "/!\\" RESET " Mandar '" RED "%s" RESET "' para '" RED "%s" RESET"'? (s/n): ", orig_folder_name, ARG_REG);
+        printf("Mandar '" RED "%s" RESET "' para '" RED "%s" RESET"'? (s/n): ", orig_folder_name, REGISTRO_LASTARG);
         scanf("%c", &resposta);
-        if (resposta != 's' && resposta != 'S') return -1;
+        if (resposta != 's' && resposta != 'S') return 0;
     }
 
     char buildPath[MAX_PATH];
@@ -190,8 +194,10 @@ int newBuild(char* orig, char* dest){
     file_count = fileTravel(orig, 1, 0, 0);
     
     printf("Nova build: %s\n",newVerPath);
+    printf("Arquivos a serem processados: %d\n", file_count);
     hashCLBuild(orig, newVerPath, conteudoPath, 1);
-    printf("\n");
+    printf("\nArquivos novos: "BLUE "%d\n" RESET, new_files);
+    printf("Arquivos ignorados: "RED "%d\n" RESET, files_ignored);
 
     return 0;
 }
@@ -218,9 +224,10 @@ int newSpecialBuild(char* orig, char* dest, char* nome){
     file_count = fileTravel(orig, 1, 0, 0);
 
     printf("Nova build: %s\n",newVerPath);
+    printf("Arquivos a serem processados: %d\n", file_count);
     hashCLBuild(orig, newVerPath, conteudoPath, 1);
-    
-    printf("\n");
+    printf("\nArquivos novos: "BLUE "%d\n" RESET, new_files);
+    printf("Arquivos ignorados: "RED "%d\n" RESET, files_ignored);
     return 0;
 }
 
@@ -323,15 +330,20 @@ int main(int argc, char** argv){
     init();
     GetCurrentDirectoryA(MAX_PATH, proj_path);
     snprintf(reg_path, MAX_PATH, "%s\\%s", DEST, argv[argc-1]);
-    snprintf(ARG_REG, MAX_PATH, "%s", argv[argc-1]);
+    snprintf(REGISTRO_LASTARG, MAX_PATH, "%s", argv[argc-1]);
 
     if (argc == 1){
-        printf(BLUE "salvaguarda " RESET "versão " BLUE "%s\n\n" RESET, VER);
-        listRegistros();
-        printf("\n");
+        printf(BLUE "salvaguarda " RESET "versão " BLUE "%s " RESET "windows\n", VER);
+        printf("digite '"BLUE "salt -ajuda" RESET"' para saber mais\n\n");
+        listRegistros();    
         return 0;
     }    
     else if (argc == 2){
+        if (strcmp(argv[argc-1], "-ajuda") == 0){
+            intro();
+            return 0;
+        }
+
         newBuild(proj_path, reg_path);
         return 0;
     }
@@ -379,7 +391,7 @@ int main(int argc, char** argv){
             load_flag_index = i;
             flags |= M_LOAD;
         } 
-        else if ((startsWith(argv[i], "-S") == 1)){
+        else if ((startsWith(argv[i], "-esp") == 1)){
             special_flag_index = i;
             flags |= M_SPC;
         }
@@ -406,7 +418,7 @@ int main(int argc, char** argv){
     }
     if ((flags & M_SPC) == M_SPC){
         char nome_build[50];
-        snprintf(nome_build, (size_t)50, "%s", argv[special_flag_index]+2);
+        snprintf(nome_build, (size_t)50, "%s", argv[special_flag_index]+4);
         newSpecialBuild(proj_path, reg_path, nome_build);
         return 0;
     }

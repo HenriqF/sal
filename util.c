@@ -175,3 +175,18 @@ int fileTravel(char* path, int recursion, int show_files, int show_folders){
     FindClose(hFind);
     return count;;
 }
+
+
+void intro(){
+    printf("salt {registro}                 | Cria uma nova build e manda pro registro.\n");
+    printf("salt -new {registro}            | Cria um novo registro.\n");
+    printf("salt -load{n} {registro}        | Carrega a última versão (ou uma versão {n}) do registro pro diretório atual.\n");
+    printf("salt -from{d} {registro}        | Troca o diretório de execução para {d}.\n\n");
+
+    printf("salt -view{build} {registro}    | Mostra todas as builds (ou uma determinada) do registro.\n");
+    printf("salt -msg {registro}            | Mostra mensagens de copiar.\n");
+    printf("salt -exe {registro}            | Salva também os arquivos .exe.\n");
+    printf("salt -esp{nome} {registro}      | Cria uma build com nome especial.\n");
+
+    printf("Nota: não inclua as chaves nos comandos.");
+}

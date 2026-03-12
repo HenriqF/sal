@@ -1,12 +1,16 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#define VER "12.03.2026.1"
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <openssl/sha.h>
 #include <stdio.h>
 #include <stdarg.h>
+
 
 #define COLORLESS
     #ifdef COLORLESS
@@ -37,5 +41,8 @@ int getFileLines(FILE* f, char*** lines, size_t* qtd_linhas);
 void msgExit(const char *fmt, ...);
 
 int fileTravel(char* path, int recursion, int show_files, int show_folders);
+
+
+void intro();
 
 #endif
