@@ -1,2 +1,2 @@
-gcc sal.c util.c -o sal -lssl -lcrypto
+gcc sal.c util.c set/set.c -o sal -lssl -lcrypto
 .\sal

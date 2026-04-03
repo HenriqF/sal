@@ -1,7 +1,13 @@
 #include "util.h"
 
+
+//configurationes
 char DEST[MAX_PATH];
 char REGISTRO_LASTARG[MAX_PATH];
+Set ignore_file_types = {100, 0, NULL};
+Set ignore_folders = {100, 0, NULL};
+
+//---
 
 #define M_NEW 0x01 //
 #define M_LOAD 0x02 //carregar porraloca
@@ -99,10 +105,20 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
             snprintf(dest_path, MAX_PATH, "%s\\%s", dest, fd.cFileName);
 
             if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                hashCLBuild(fonte_path, dest_path, conteudo, copy);
+                if (!contains(ignore_folders, fd.cFileName)) hashCLBuild(fonte_path, dest_path, conteudo, copy);
+                else{
+                    int ignored = fileTravel(fonte_path, 1, 0, 0);
+                    files_ignored += ignored;
+                    files_done += ignored;
+                }
             }
             else if (copy){
-                if (!(ignore_exes && endsWith(fd.cFileName, ".exe"))){
+                int can_copy = 1;
+
+                char* ext_dot = strrchr(fd.cFileName, '.');
+                if (ext_dot != NULL && contains(ignore_file_types, ext_dot)) can_copy = 0;
+
+                if (can_copy){
                     FILE* f = fopen(fonte_path, "rb");
                     char hash[41];
                     getFileHash(f, hash);
@@ -299,6 +315,11 @@ void listRegistros(){
 //Prog
 void init(){
     SetConsoleOutputCP(CP_UTF8);
+    initSet(&ignore_file_types);
+    initSet(&ignore_folders);
+
+    
+    
 
     char program_path[MAX_PATH]; 
     GetModuleFileNameA(NULL, program_path, MAX_PATH);
@@ -306,7 +327,6 @@ void init(){
 
     char config_path[MAX_PATH];
     snprintf(config_path, MAX_PATH, "%s\\svconfig.txt", program_path);
-
 
     char** svconfig_lines;
     size_t line_count;
@@ -318,6 +338,19 @@ void init(){
     fclose(f);
     if (line_count > 0){
         strcpy(DEST, svconfig_lines[0]);
+    }
+    for (size_t i = 1; i < line_count; i++){
+        size_t arg_length = strlen(svconfig_lines[i]);
+        if (arg_length <= 8) continue;
+
+        char* resto = svconfig_lines[i]+8;
+
+        if (startsWith(svconfig_lines[i], "dignore ") == 1){
+            addKey(&ignore_folders, resto);
+        }
+        else if (startsWith(svconfig_lines[i], "tignore ") == 1){
+            addKey(&ignore_file_types, resto);
+        }
     }
 
     if (createCheckDir(DEST) != 0) msgExit("Falha em criar / achar diretorio destino (primeira linha svconfig)");
@@ -395,7 +428,6 @@ int main(int argc, char** argv){
             special_flag_index = i;
             flags |= M_SPC;
         }
-        else if ((startsWith(argv[i], "-exe") == 1)) flags |= M_EXE;
         else if ((startsWith(argv[i], "-msg") == 1)) flags |= M_CPYMSG;
     }
 
@@ -410,9 +442,6 @@ int main(int argc, char** argv){
 
 
     //nao exclusivas
-    if ((flags & M_EXE) == M_EXE){
-        ignore_exes = 0;
-    }
     if ((flags & M_CPYMSG) == M_CPYMSG){
         copy_messages = 1;
     }

@@ -1,4 +1,3 @@
-
 #include "util.h"
 
 
@@ -135,7 +134,6 @@ void msgExit(const char *fmt, ...){
     exit(0);
 }
 
-
 int fileTravel(char* path, int recursion, int show_files, int show_folders){
     int count = 0;
 
@@ -175,7 +173,6 @@ int fileTravel(char* path, int recursion, int show_files, int show_folders){
     FindClose(hFind);
     return count;;
 }
-
 
 void intro(){
     printf("salt {registro}                 | Cria uma nova build e manda pro registro.\n");
