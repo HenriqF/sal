@@ -1,0 +1,21 @@
+pra criar:
+    diff:
+        salt -diff 01 05 salvaguarda
+
+    Logging:
+        registro
+            build   
+            conteudo
+
+
+            logs.txt:
+
+                08/02/2026 18:13:
+                    Nova build: D:\sv\teste\build\1
+                    Autor: Carlos de Almeida
+                                    
+                19:15 ...
+
+
+
+
