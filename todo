@@ -1,3 +1,0 @@
-pra criar:
-    diff:
-        salt -diff 01 05 salvaguarda
