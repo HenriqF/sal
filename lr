@@ -1,2 +1,47 @@
-gcc sal.c util.c set/set.c -o sal -lssl -lcrypto
-.\sal
+
+[build]
+    time_start: build
+    run: gcc sal.c util.c set/set.c os/win.c -o sal -lssl -lcrypto
+    time_end: build
+    end
+
+[cleanup]
+    run: rm sal
+    run: rm -rf E:\teste
+    end
+
+
+[teste]
+    goto: build
+    silent: 0
+
+    time_start: teste
+
+    run: .\sal
+
+    run: .\sal -new porra
+
+    new_input: s
+    task: .\sal porra
+
+    task: .\sal -view1 porra
+    out_contains: lr
+
+    time_end: teste
+
+    silent: 1
+    goto: cleanup
+
+    end
+
+
+[main]
+    goto: build
+    sleep: 
+
+    silent: 0
+    run: .\sal
+    silent: 1
+
+    goto: cleanup
+    end 

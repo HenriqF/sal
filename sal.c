@@ -31,7 +31,7 @@ int createCheckDir(char* dest){
 }
 
 void criarDirRegistro(char* path){
-    if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) {
+    if (path_acessible(path)) {
         printf("Registro ja existe.");
         return;
     }
@@ -140,13 +140,11 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
                     char file_path[MAX_PATH];
                     snprintf(file_path, MAX_PATH, "%s\\%s",conteudo, hash);
 
-                    DWORD at = GetFileAttributesA(file_path);
-                    if(!(at != INVALID_FILE_ATTRIBUTES && !(at & FILE_ATTRIBUTE_DIRECTORY))){
-                        CopyFile(fonte_path, file_path, FALSE);
+                    if(!path_acessible(file_path) || is_folder(file_path)){
                         new_files++;
+                        copy_file(fonte_path, file_path);
                         if (copy_messages) printf("Copiado : %s -> %s\n", fonte_path, file_path);
                     }
-
                     f = fopen(dest_path, "wb");
                     writeFile(f, hash);
                     fclose(f);
@@ -180,7 +178,7 @@ void hashCLBuild(char* orig, char* dest, char* conteudo, int copy){
 
     //create
 int newBuild(char* orig, char* dest, char* nome){
-    if(GetFileAttributesA(dest) == INVALID_FILE_ATTRIBUTES){
+    if(!path_acessible(dest)){
         printf("Registro não existe.");
         return -1;
     }
@@ -196,7 +194,7 @@ int newBuild(char* orig, char* dest, char* nome){
     if (nome){
         snprintf(newVerPath, MAX_PATH, "%s\\%s", buildPath, nome);
 
-        if (GetFileAttributesA(newVerPath) != INVALID_FILE_ATTRIBUTES) {
+        if (path_acessible(newVerPath)) {
             printf("Build ja existe.");
             return -1;
         }
@@ -244,6 +242,7 @@ int newBuild(char* orig, char* dest, char* nome){
     hashCLBuild(orig, newVerPath, conteudoPath, 1);
     printf("\nArquivos novos: "BLUE "%d\n" RESET, new_files);
     printf("Arquivos ignorados: "RED "%d\n" RESET, files_ignored);
+    // printf("Arquivos duplicados: %d", file_count- (new_files+files_ignored));
 
     time_t agora = time(NULL);
     struct tm* tm_info = localtime(&agora);
@@ -269,7 +268,7 @@ int newBuild(char* orig, char* dest, char* nome){
 
     //load
 int loadBuild(char* orig, char* dest, char* ver){
-    if(GetFileAttributesA(orig) == INVALID_FILE_ATTRIBUTES){
+    if(!path_acessible(orig)){
         printf("Registro não existe.");
         return -1;
     }
@@ -294,7 +293,7 @@ int loadBuild(char* orig, char* dest, char* ver){
     char conteudo_path[MAX_PATH];
     snprintf(conteudo_path, MAX_PATH, "%s\\conteudo", orig);
 
-    if (GetFileAttributesA(build_path) != INVALID_FILE_ATTRIBUTES) {
+    if (path_acessible(build_path)) {
         hashCLBuild(build_path, dest, conteudo_path, 0);
         return 0;
     }
@@ -338,7 +337,7 @@ void listRegistros(){
 
 //Prog
 void init(){
-    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleOutputCP(65001);
     initSet(&ignore_file_types);
     initSet(&ignore_folders);
 
@@ -419,8 +418,8 @@ int main(int argc, char** argv){
         if ((startsWith(argv[i], "-from") == 1)){
             char new_path[MAX_PATH];
             snprintf(new_path, MAX_PATH, "%s", argv[i]+5);
-            DWORD fa = GetFileAttributes(new_path);
-            if (fa == INVALID_FILE_ATTRIBUTES || ((fa & FILE_ATTRIBUTE_DIRECTORY) == 0)){
+
+            if (!path_acessible(new_path) || !is_folder(new_path)){
                 printf("caminho indevido / inexistente.");
                 return 0;
             }
@@ -429,7 +428,6 @@ int main(int argc, char** argv){
         else if ((startsWith(argv[i], "-msg") == 1)){
             snprintf(BUILDER_MESSAGE, BUILDER_MESSAGE_SIZE, "%s", argv[i]+4);
         }
-
 
         //termina programa
         else if ((startsWith(argv[i], "-new") == 1)){

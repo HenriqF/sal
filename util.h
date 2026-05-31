@@ -1,17 +1,18 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define VER "07.04.2026.3"
+#define VER "31.05.2026.1"
 
 #include "set/set.h"
+#include "os/win.h"
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
-#include <windows.h>
 #include <openssl/sha.h>
 #include <stdio.h>
 #include <stdarg.h>
 
+#define MAX_PATH 260
 
 #define COLORLESS
     #ifdef COLORLESS
