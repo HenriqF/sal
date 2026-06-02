@@ -7,12 +7,13 @@
 
 [cleanup]
     run: rm sal
-    run: rm -rf E:\teste
+    run: rm -rf C:\teste
     end
 
 
 [teste]
     goto: build
+
     silent: 0
 
     time_start: teste
@@ -22,10 +23,14 @@
     run: .\sal -new porra
 
     new_input: s
-    task: .\sal porra
+    task: .\sal -fromC:\Users\henri\Documentos\projetos\p\projetosC -info porra
 
-    task: .\sal -view1 porra
-    out_contains: lr
+    new_input: s
+    task: .\sal -fromC:\Users\henri\Documentos\projetos\p\projetosC porra
+
+    run: .\sal -view1 porra
+
+    run: .\sal -fromC:\Users\henri\Desktop\teste -load porra
 
     time_end: teste
 
@@ -35,12 +40,14 @@
     end
 
 
+
 [main]
     goto: build
-    sleep: 
 
     silent: 0
+    time_start: EXEC
     run: .\sal
+    time_end: EXEC
     silent: 1
 
     goto: cleanup
