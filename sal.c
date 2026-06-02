@@ -328,7 +328,7 @@ void listRegistros(){
         if (r == 2) continue;
        
         if (!p->is_file){
-            printf("Registro "COR_OK "%s" RESET " -> ", p->item_name);
+            printf("Registro "COR_OK "%s" RESET " ", p->item_name);
 
             char path_salver[MAX_PATH];
             snprintf(path_salver, MAX_PATH, "%s\\build\\salver", p->item_path);
@@ -339,7 +339,7 @@ void listRegistros(){
             readFile(f, &size, &content);
             fclose(f);
 
-            printf("versão %s\n", content);
+            printf("v.%s\n", content);
         }
     }
 
