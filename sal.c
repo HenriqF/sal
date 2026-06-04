@@ -345,7 +345,7 @@ void listRegistros(){
             count++;
         }
     }
-    printf("\nRegistros: %d", count);
+    printf("\nRegistros: %d\n", count);
 
 }
 

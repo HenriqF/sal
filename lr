@@ -1,12 +1,12 @@
 [build]
     time_start: build
-    run: gcc sal.c util.c set/set.c os/linus.c -o sal.exe -lssl -lcrypto -Wno-format-truncation -Wno-stringop-truncation -g
+    run: gcc sal.c util.c set/set.c os/win.c -o sal -lssl -lcrypto -Wno-format-truncation -Wno-stringop-truncation -g
     time_end: build
     end
 
 [cleanup]
-    #run: rm sal.exe
-    #run: rm -rf /home/carlos/Desktop/sigma
+    #run: rm sal
+    run: rm -rf C:\teste
     end
 
 
@@ -15,20 +15,13 @@
     silent: 0
     time_start: teste
 
-    run: ./sal.exe
-    run: ./sal.exe -new porra
+    run: .\sal
+    run: .\sal -new porra
 
     new_input: s
-    task: ./sal.exe -info porra
+    task: .\sal -info porra
 
-    new_input: s
-    task: ./sal.exe -info porra
-
-    run: ./sal.exe -view porra
-    run: ./sal.exe -view2 porra
-
-    run: ./sal.exe -from/home/carlos/Desktop/sigma -load porra
-
+    run: .\sal -view porra
 
     time_end: teste
     silent: 1
@@ -41,7 +34,7 @@
     goto: build
 
     silent: 0
-    run: ./sal.exe
+    run: .\sal
     silent: 1
 
     #goto: cleanup

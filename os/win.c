@@ -15,7 +15,7 @@ int is_folder(const char* path){
 }
 
 int copy_file(char* src, char* dst){
-   return CopyFile(src, dst, 1);
+   return CopyFile(src, dst, 0);
 }
 
 int get_program_path(char* path){

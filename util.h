@@ -4,7 +4,7 @@
 #define VER "04.06.2026.1"
 
 #include "set/set.h"
-#include "os/linus.h"
+#include "os/win.h"
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
