@@ -1,10 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define VER "02.06.2026.1"
+#define VER "04.06.2026.1"
 
 #include "set/set.h"
-#include "os/win.h"
+#include "os/linus.h"
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>

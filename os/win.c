@@ -1,6 +1,6 @@
 #include "win.h"
 
-int mkdir(const char* path){
+int createdir(const char* path){
     return CreateDirectory(path, NULL);
 }
 
@@ -18,6 +18,13 @@ int copy_file(char* src, char* dst){
    return CopyFile(src, dst, 1);
 }
 
+int get_program_path(char* path){
+    return GetModuleFileNameA(NULL, path, MAX_PATH);
+}
+
+int get_working_path(char* path){
+    return GetCurrentDirectoryA(MAX_PATH, path);
+}
 
 
 int file_travel(char* nome, int* is_file, DirIt* dit){

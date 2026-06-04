@@ -1,4 +1,4 @@
-C:\teste
+/run/media/carlos/CARLOS/sv
 
 builder pedrin_du_pineu
 

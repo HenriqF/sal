@@ -6,11 +6,16 @@
 #define PROG_OS "windows"
 #define MAX_PATH 260
 
+#define PATH_SEP '\\'
+#define PATH_SEP_STR "\\"
 
-int mkdir(const char* path);
+int createdir(const char* path);
 int path_acessible(const char* path);
 int is_folder(const char* path);
 int copy_file(char* src, char* dst);
+
+int get_program_path(char* path);
+int get_working_path(char* path);
 
 typedef struct DirIt {
     struct DirIt* prev;

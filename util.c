@@ -181,5 +181,5 @@ void intro(){
     printf("Nota: não inclua as chaves nos comandos.\n\n");
 
     printf("Inclua o comando 'tignore {.tipo}' no arquivo svconfig.txt para excluir tipos de arquivos das builds.\n");
-    printf("Inclua o comando 'dignore {dir}' no arquivo svconfig.txt para excluir certos diretorios das builds;");
+    printf("Inclua o comando 'dignore {dir}' no arquivo svconfig.txt para excluir certos diretorios das builds.\n");
 }

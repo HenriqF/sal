@@ -26,29 +26,29 @@ Set ignore_folders = {100, 0, NULL};
 
 void criarDirRegistro(char* path){
     if (path_acessible(path)) {
-        printf("Registro ja existe.");
+        printf("Registro ja existe.\n");
         return;
     }
 
-    if(!mkdir(path)){
+    if(!createdir(path)){
         printf("erro");
         return;
     }
     char contentPath[MAX_PATH];
     char buildPath[MAX_PATH];
-    snprintf(contentPath, MAX_PATH, "%s\\conteudo", path);
-    snprintf(buildPath, MAX_PATH, "%s\\build", path);
+    snprintf(contentPath, MAX_PATH, "%s" PATH_SEP_STR "conteudo", path);
+    snprintf(buildPath, MAX_PATH, "%s" PATH_SEP_STR "build", path);
 
-    if(!mkdir(contentPath)){
+    if(!createdir(contentPath)){
         printf("erro");
         return;
     }
-    if(!mkdir(buildPath)){
+    if(!createdir(buildPath)){
         printf("erro");
         return;
     }
 
-    snprintf(buildPath, MAX_PATH,"%s\\build\\salver", path);
+    snprintf(buildPath, MAX_PATH,"%s" PATH_SEP_STR "build" PATH_SEP_STR "salver", path);
 
     FILE* f = fopen(buildPath, "w");
     if (!f){
@@ -59,7 +59,7 @@ void criarDirRegistro(char* path){
     fclose(f);
 
 
-    printf("Criado novo registro: %s", path);
+    printf("Criado novo registro: %s\n", path);
     return;
 }
 
@@ -98,7 +98,7 @@ int getFileHash(FILE* f, char hash[41]){
 void hashLoadBuild(char* orig, char* dest, char* cont_path){
     char fonte_path[MAX_PATH];
     char dest_path[MAX_PATH];
-    mkdir(dest);
+    createdir(dest);
 
     DirIt* p = init_dirit(orig, 1);
 
@@ -109,7 +109,7 @@ void hashLoadBuild(char* orig, char* dest, char* cont_path){
 
         snprintf(dest_path, MAX_PATH, "%s%s", dest, p->item_path+path_length);
         if (p->is_file){
-            snprintf(fonte_path, MAX_PATH, "%s\\%s", p->path, p->item_name);
+            snprintf(fonte_path, MAX_PATH, "%s" PATH_SEP_STR "%s", p->path, p->item_name);
             
             char file_hash[50];
             FILE* f = fopen(fonte_path, "rb");
@@ -117,12 +117,12 @@ void hashLoadBuild(char* orig, char* dest, char* cont_path){
             fclose(f);
 
             char file_content_path[MAX_PATH];
-            snprintf(file_content_path, MAX_PATH, "%s\\%s", cont_path, file_hash);
+            snprintf(file_content_path, MAX_PATH, "%s" PATH_SEP_STR "%s", cont_path, file_hash);
 
             copy_file(file_content_path, dest_path);
         }
         else{
-            mkdir(dest_path);
+            createdir(dest_path);
         }
 
 
@@ -133,7 +133,7 @@ void hashLoadBuild(char* orig, char* dest, char* cont_path){
 void hashCopyBuild(char* orig, char* dest, char* cont_path){
     char fonte_path[MAX_PATH];
     char dest_path[MAX_PATH];
-    mkdir(dest);
+    createdir(dest);
     DirIt* p = init_dirit(orig, 1);
 
     int path_length = strlen(orig);
@@ -143,7 +143,7 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
 
         snprintf(dest_path, MAX_PATH, "%s%s", dest, p->item_path+path_length);
         if (p->is_file){
-            snprintf(fonte_path, MAX_PATH, "%s\\%s", p->path, p->item_name);
+            snprintf(fonte_path, MAX_PATH, "%s" PATH_SEP_STR "%s", p->path, p->item_name);
             char* ext_dot = strrchr(p->item_name, '.');
             if ((ext_dot != NULL && contains(ignore_file_types, ext_dot))){
                 if (copy_messages) printf(COR_NOK "Ignorado" RESET ": %s\n", fonte_path);
@@ -158,7 +158,7 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
             fclose(f);
 
             char file_path[MAX_PATH];
-            snprintf(file_path, MAX_PATH, "%s\\%s", cont_path, hash);
+            snprintf(file_path, MAX_PATH, "%s" PATH_SEP_STR "%s", cont_path, hash);
 
             if(!path_acessible(file_path) || is_folder(file_path)){
                 new_files++;
@@ -172,7 +172,7 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
 
             progresso:
             files_done++;
-            if (!copy_messages) printf("Progresso:" COR_OK " %d\% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
+            if (!copy_messages) printf("Progresso:" COR_OK " %d%% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
         }
         else {
             if (contains(ignore_folders, p->item_name)){
@@ -184,7 +184,7 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
                 skip_folder(&p);
                 continue;
             }
-            mkdir(dest_path);
+            createdir(dest_path);
         }
     }
 }
@@ -192,7 +192,7 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
     //create
 int newBuild(char* orig, char* dest, char* nome){
     if(!path_acessible(dest)){
-        printf("Registro não existe.");
+        printf("Registro não existe.\n");
         return -1;
     }
 
@@ -200,22 +200,22 @@ int newBuild(char* orig, char* dest, char* nome){
     char conteudoPath[MAX_PATH];
     char logsPath[MAX_PATH];
     char newVerPath[MAX_PATH];
-    snprintf(buildPath, MAX_PATH, "%s\\build", dest);
-    snprintf(conteudoPath, MAX_PATH, "%s\\conteudo", dest);
-    snprintf(logsPath, MAX_PATH, "%s\\logs.txt", dest);
+    snprintf(buildPath, MAX_PATH, "%s" PATH_SEP_STR "build", dest);
+    snprintf(conteudoPath, MAX_PATH, "%s" PATH_SEP_STR "conteudo", dest);
+    snprintf(logsPath, MAX_PATH, "%s" PATH_SEP_STR "logs.txt", dest);
 
     if (nome){
-        snprintf(newVerPath, MAX_PATH, "%s\\%s", buildPath, nome);
+        snprintf(newVerPath, MAX_PATH, "%s" PATH_SEP_STR "%s", buildPath, nome);
 
         if (path_acessible(newVerPath)) {
-            printf("Build ja existe.");
+            printf("Build ja existe.\n");
             return -1;
         }
     }
     else{
-        char* last_slash_orig = strrchr(orig, '\\');
+        char* last_slash_orig = strrchr(orig, PATH_SEP);
         char orig_folder_name[MAX_PATH];
-        snprintf(orig_folder_name, MAX_PATH, last_slash_orig+1);
+        snprintf(orig_folder_name, MAX_PATH, "%s", last_slash_orig+1);
 
         if (strcmp(orig_folder_name, REGISTRO_LASTARG) != 0){
             char resposta;
@@ -226,9 +226,9 @@ int newBuild(char* orig, char* dest, char* nome){
 
 
         char salverPath[MAX_PATH];
-        snprintf(buildPath, MAX_PATH, "%s\\build", dest);
-        snprintf(conteudoPath, MAX_PATH, "%s\\conteudo", dest);
-        snprintf(salverPath, MAX_PATH, "%s\\salver", buildPath);
+        (void)snprintf(buildPath, MAX_PATH, "%s" PATH_SEP_STR "build", dest);
+        (void)snprintf(conteudoPath, MAX_PATH, "%s" PATH_SEP_STR "conteudo", dest);
+        (void)snprintf(salverPath, MAX_PATH, "%s" PATH_SEP_STR "salver", buildPath);
 
         char* content;
         size_t content_size = 0;
@@ -238,7 +238,7 @@ int newBuild(char* orig, char* dest, char* nome){
         fclose(salver_file);
         int current_ver = atoi(content)+1;
 
-        snprintf(newVerPath, MAX_PATH, "%s\\%d", buildPath, current_ver);
+        snprintf(newVerPath, MAX_PATH, "%s" PATH_SEP_STR "%d", buildPath, current_ver);
 
         char new_ver[30];
         snprintf(new_ver, (size_t)30, "%d", current_ver);
@@ -257,7 +257,7 @@ int newBuild(char* orig, char* dest, char* nome){
 
     printf("\nArquivos novos: "COR_OK "%d\n" RESET, new_files);
     printf("Arquivos ignorados: "COR_OK "%d\n" RESET, files_ignored);
-    printf("Arquivos duplicados: "COR_OK "%d" RESET" ",  file_count-(new_files+files_ignored));
+    printf("Arquivos duplicados: "COR_OK "%d" RESET"\n",  file_count-(new_files+files_ignored));
 
     time_t agora = time(NULL);
     struct tm* tm_info = localtime(&agora);
@@ -284,16 +284,16 @@ int newBuild(char* orig, char* dest, char* nome){
     //load
 int loadBuild(char* orig, char* dest, char* ver){
     if(!path_acessible(orig)){
-        printf("Registro não existe.");
+        printf("Registro não existe.\n");
         return -1;
     }
 
     char salver_path[MAX_PATH];
-    snprintf(salver_path, MAX_PATH, "%s\\build\\salver", orig);
+    snprintf(salver_path, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "salver", orig);
 
     char build_path[MAX_PATH];
     if (strlen(ver) != 0){
-        snprintf(build_path, MAX_PATH, "%s\\build\\%s", orig, ver);
+        snprintf(build_path, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "%s", orig, ver);
     }
     else{
         char* content;
@@ -301,12 +301,12 @@ int loadBuild(char* orig, char* dest, char* ver){
         FILE* f = fopen(salver_path, "rb");
         readFile(f, &size, &content);
         fclose(f);
-        snprintf(build_path, MAX_PATH, "%s\\build\\%s", orig, content);
+        snprintf(build_path, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "%s", orig, content);
         free(content);
     }
 
     char conteudo_path[MAX_PATH];
-    snprintf(conteudo_path, MAX_PATH, "%s\\conteudo", orig);
+    snprintf(conteudo_path, MAX_PATH, "%s" PATH_SEP_STR "conteudo", orig);
 
     if (!path_acessible(build_path)) {
         printf("Build nao existe.");
@@ -315,7 +315,7 @@ int loadBuild(char* orig, char* dest, char* ver){
 
     hashLoadBuild(build_path, dest, conteudo_path);
     
-    printf("[" COR_OK "%s" RESET "] enviado para [" COR_OK "%s" RESET"]", orig, dest);
+    printf("[" COR_OK "%s" RESET "] enviado para [" COR_OK "%s" RESET"]\n", orig, dest);
     return 0;
 }
 
@@ -323,6 +323,8 @@ int loadBuild(char* orig, char* dest, char* ver){
 //visualizacao
 void listRegistros(){
     DirIt* p = init_dirit(DEST, 0);
+
+    int count = 0;
     int r;
     while(r = path_travel(&p)){
         if (r == 2) continue;
@@ -331,17 +333,19 @@ void listRegistros(){
             printf("Registro "COR_OK "%s" RESET " ", p->item_name);
 
             char path_salver[MAX_PATH];
-            snprintf(path_salver, MAX_PATH, "%s\\build\\salver", p->item_path);
+            snprintf(path_salver, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "salver", p->item_path);
 
             char* content;
             size_t size = 0;
             FILE* f = fopen(path_salver, "rb");
             readFile(f, &size, &content);
-            fclose(f);
+            if (f) fclose(f);
 
             printf("v.%s\n", content);
+            count++;
         }
     }
+    printf("\nRegistros: %d", count);
 
 }
 
@@ -353,11 +357,12 @@ void init(){
     snprintf(BUILDER_NAME, BUILDER_NAME_SIZE, "nem deus sabe");
     
     char program_path[MAX_PATH]; 
-    GetModuleFileNameA(NULL, program_path, MAX_PATH);
-    *strrchr(program_path, '\\') = '\0';
+    get_program_path(program_path);
+
+    *strrchr(program_path, PATH_SEP) = '\0';
 
     char config_path[MAX_PATH];
-    snprintf(config_path, MAX_PATH, "%s\\svconfig.txt", program_path);
+    snprintf(config_path, MAX_PATH, "%s" PATH_SEP_STR "svconfig.txt", program_path);
 
     char** svconfig_lines;
     size_t line_count;
@@ -389,7 +394,7 @@ void init(){
         }
     }
     if (!path_acessible(DEST)){
-        if(!mkdir(DEST)){
+        if(!createdir(DEST)){
             msgExit("Falha em criar / achar diretorio destino (primeira linha svconfig)");
         }
     }
@@ -401,9 +406,9 @@ int main(int argc, char** argv){
 
     init();
 
-    GetCurrentDirectoryA(MAX_PATH, proj_path);
+    get_working_path(proj_path);
 
-    snprintf(reg_path, MAX_PATH, "%s\\%s", DEST, argv[argc-1]);
+    snprintf(reg_path, MAX_PATH, "%s" PATH_SEP_STR "%s", DEST, argv[argc-1]);
     snprintf(REGISTRO_LASTARG, MAX_PATH, "%s", argv[argc-1]);
 
     if (argc == 1){
@@ -451,13 +456,13 @@ int main(int argc, char** argv){
             char build_path[MAX_PATH];
     
             if (argv[i][5] != '\0'){
-                snprintf(build_path, MAX_PATH, "%s\\build\\%s", reg_path, argv[i]+5);
+                snprintf(build_path, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "%s", reg_path, argv[i]+5);
                 printf("\n");
                 display_dir(build_path, 1, 1, 1);
                 return 0;
             }
 
-            snprintf(build_path, MAX_PATH, "%s\\build", reg_path, argv[i]+5);
+            snprintf(build_path, MAX_PATH, "%s" PATH_SEP_STR "build", reg_path);
             display_dir(build_path, 0, 0 ,1);
             return 0;
         }
