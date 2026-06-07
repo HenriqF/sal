@@ -23,7 +23,7 @@ int copy_file(char* src, char* dst){
         return 0;
     }
 
-    int dst_f = open(dst, (O_WRONLY | O_CREAT | O_EXCL), (S_IRUSR | S_IWUSR));
+    int dst_f = open(dst, (O_WRONLY | O_CREAT | O_TRUNC), (S_IRUSR | S_IWUSR));
     if (dst_f < 0){
         close(src_f);
         return 0;

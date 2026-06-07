@@ -172,7 +172,10 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
 
             progresso:
             files_done++;
-            if (!copy_messages) printf("Progresso:" COR_OK " %d%% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
+            if (!copy_messages) {
+                printf("Progresso:" COR_OK " %d%% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
+                fflush(stdout);
+            }
         }
         else {
             if (contains(ignore_folders, p->item_name)){

@@ -19,12 +19,13 @@
     run: ./sal.exe -new porra
 
     new_input: s
-    task: ./sal.exe porra
+    task: ./sal.exe -info porra
 
     new_input: s
-    task: ./sal.exe porra
+    task: ./sal.exe -info porra
 
     run: ./sal.exe -view porra
+    run: ./sal.exe -view2 porra
 
     run: ./sal.exe -from/home/carlos/Desktop/sigma -load porra
 
@@ -43,5 +44,5 @@
     run: ./sal.exe
     silent: 1
 
-    goto: cleanup
+    #goto: cleanup
     end 

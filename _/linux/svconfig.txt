@@ -1,4 +1,4 @@
-/run/media/carlos/CARLOS/teste
+/home/carlos/Desktop/sigma
 
 builder pedrin_du_pineu
 
