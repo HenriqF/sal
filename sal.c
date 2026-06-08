@@ -8,6 +8,10 @@ char BUILDER_NAME[BUILDER_NAME_SIZE];
 char BUILDER_MESSAGE[BUILDER_MESSAGE_SIZE];
 
 
+char OPENSVC_COMMAND[BUILDER_MESSAGE_SIZE];
+int EXISTS_OPENSVC = 0;
+
+
 char DEST[MAX_PATH];
 char REGISTRO_LASTARG[MAX_PATH];
 Set ignore_file_types = {100, 0, NULL};
@@ -180,9 +184,11 @@ void hashCopyBuild(char* orig, char* dest, char* cont_path){
         else {
             if (contains(ignore_folders, p->item_name)){
                 int ignored = count_files(p->path, 1);
-                printf(COR_NOK "Ignorados" RESET " [%d] de %s\n", ignored, p->path);
                 files_ignored += ignored;
                 files_done += ignored;
+                
+                if (copy_messages) printf(COR_NOK "Ignorados" RESET " [%d] de %s\n", ignored, p->path);
+                else printf("Progresso:" COR_OK " %d%% (%d/%d)\r" RESET, (int)(((float)files_done/file_count)*100),files_done, file_count);
 
                 skip_folder(&p);
                 continue;
@@ -229,9 +235,9 @@ int newBuild(char* orig, char* dest, char* nome){
 
 
         char salverPath[MAX_PATH];
-        (void)snprintf(buildPath, MAX_PATH, "%s" PATH_SEP_STR "build", dest);
-        (void)snprintf(conteudoPath, MAX_PATH, "%s" PATH_SEP_STR "conteudo", dest);
-        (void)snprintf(salverPath, MAX_PATH, "%s" PATH_SEP_STR "salver", buildPath);
+        snprintf(buildPath, MAX_PATH, "%s" PATH_SEP_STR "build", dest);
+        snprintf(conteudoPath, MAX_PATH, "%s" PATH_SEP_STR "conteudo", dest);
+        snprintf(salverPath, MAX_PATH, "%s" PATH_SEP_STR "salver", buildPath);
 
         char* content;
         size_t content_size = 0;
@@ -395,6 +401,11 @@ void init(){
         else if (startsWith(svconfig_lines[i], "builder ") == 1){
             snprintf(BUILDER_NAME, BUILDER_NAME_SIZE, "%s", resto);
         }
+        else if (startsWith(svconfig_lines[i], "opensvc ") == 1){
+            snprintf(OPENSVC_COMMAND, BUILDER_MESSAGE_SIZE, "%s", resto);
+            EXISTS_OPENSVC = 1;
+        }
+        
     }
     if (!path_acessible(DEST)){
         if(!createdir(DEST)){
@@ -423,6 +434,10 @@ int main(int argc, char** argv){
     else if (argc == 2){
         if (strcmp(argv[argc-1], "-ajuda") == 0){
             intro();
+            return 0;
+        }
+        if (strcmp(argv[argc-1], "-svconfig") == 0){
+            if (EXISTS_OPENSVC) system(OPENSVC_COMMAND);
             return 0;
         }
 

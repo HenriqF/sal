@@ -169,6 +169,7 @@ void display_dir(char* path, int recursion, int show_files, int show_folders){
 
 void intro(){
     printf("salt {registro}                 | Cria uma nova build e manda pro registro.\n");
+    printf("salt -svconfig                  | Executa o comando para abrir o arquivo svconfig.txt\n");
     printf("salt -new {registro}            | Cria um novo registro.\n");
     printf("salt -load{n} {registro}        | Carrega a última versão (ou uma versão {n}) do registro pro diretório atual.\n");
     printf("salt -from{d} {registro}        | Troca o diretório de execução para {d}.\n\n");
@@ -181,5 +182,9 @@ void intro(){
     printf("Nota: não inclua as chaves nos comandos.\n\n");
 
     printf("Inclua o comando 'tignore {.tipo}' no arquivo svconfig.txt para excluir tipos de arquivos das builds.\n");
-    printf("Inclua o comando 'dignore {dir}' no arquivo svconfig.txt para excluir certos diretorios das builds.\n");
+    printf("Inclua o comando 'dignore {dir}' no arquivo svconfig.txt para excluir certos diretorios das builds.\n\n");
+
+    printf("No arquivo svconfig.txt, 'opensvc {comando}' serve para declarar o comando usado em 'salt -svconfig'\n");
+    printf("No arquivo svconfig.txt, 'builder {nome}' declara o nome do builder, que vai nas logs.\n");
+
 }
