@@ -34,14 +34,23 @@
     goto: cleanup
     end
 
+[pop]
+    run: .\sal.exe -new sigmadabahia
+    run: .\sal.exe -new porra
+    run: .\sal.exe -new salvaguarda
+    run: .\sal.exe -new teste
+    run: .\sal.exe -new SDINFASDF.AFNIASDF.ASDFN
+    run: .\sal.exe -new SDINFASDF.AFNIASDF.ASDFNafdsafasdfdgsafs
+
+    end
 
 [main]
     goto: build
+    run: clear
 
     silent: 0
-    run: .\sal.exe
 
-    run: .\sal.exe -svconfig
+    run: .\sal.exe
     silent: 1
 
     goto: cleanup

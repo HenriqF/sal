@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define VER "08.06.2026.1"
+#define VER "16.06.2026.1"
 
 #include "set/set.h"
 #include "os/win.h"

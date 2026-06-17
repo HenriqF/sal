@@ -185,6 +185,8 @@ void intro(){
     printf("Inclua o comando 'dignore {dir}' no arquivo svconfig.txt para excluir certos diretorios das builds.\n\n");
 
     printf("No arquivo svconfig.txt, 'opensvc {comando}' serve para declarar o comando usado em 'salt -svconfig'\n");
+    printf("No arquivo svconfig.txt, 'viewcol n' serve para declarar quantas colunas aparecem quando usado 'salt'\n" );
     printf("No arquivo svconfig.txt, 'builder {nome}' declara o nome do builder, que vai nas logs.\n");
+
 
 }

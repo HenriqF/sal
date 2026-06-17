@@ -330,6 +330,9 @@ int loadBuild(char* orig, char* dest, char* ver){
 
 
 //visualizacao
+#define VIEW_LENGTH 35
+int VIEW_COLUMNS = 3;
+
 void listRegistros(){
     DirIt* p = init_dirit(DEST, 0);
 
@@ -339,8 +342,6 @@ void listRegistros(){
         if (r == 2) continue;
        
         if (!p->is_file){
-            printf("Registro "COR_OK "%s" RESET " ", p->item_name);
-
             char path_salver[MAX_PATH];
             snprintf(path_salver, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "salver", p->item_path);
 
@@ -349,11 +350,33 @@ void listRegistros(){
             FILE* f = fopen(path_salver, "rb");
             readFile(f, &size, &content);
             if (f) fclose(f);
-
-            printf("v.%s\n", content);
             count++;
+
+            int name_length = strlen(p->item_name);
+            int ver_length = strlen(content);
+            int total_length = name_length + ver_length;
+
+
+            if (total_length > VIEW_LENGTH) {
+                p->item_name[VIEW_LENGTH-3] = '.';
+                p->item_name[VIEW_LENGTH-2] = '.';
+                p->item_name[VIEW_LENGTH-1] = '\0';
+            }
+
+        
+            printf(COR_OK "%s" RESET " v.%s", p->item_name, content);
+
+            if (count%VIEW_COLUMNS == 0 && count != 0) printf("\n");
+            else {
+                for (int j = total_length; j < VIEW_LENGTH; j++) printf(" ");
+                printf("  ");
+            }
         }
     }
+    if (!(count%VIEW_COLUMNS == 0 && count != 0)) printf("\n");
+
+
+
     printf("\nRegistros: %d\n", count);
 
 }
@@ -404,6 +427,10 @@ void init(){
         else if (startsWith(svconfig_lines[i], "opensvc ") == 1){
             snprintf(OPENSVC_COMMAND, BUILDER_MESSAGE_SIZE, "%s", resto);
             EXISTS_OPENSVC = 1;
+        }
+        else if (startsWith(svconfig_lines[i], "viewcol") == 1){
+            int qtd = atoi(resto);
+            if (qtd > 0) VIEW_COLUMNS = qtd;
         }
         
     }
