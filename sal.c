@@ -1,4 +1,5 @@
 #include "util.h"
+#include "diff/diff.h"
 
 
 //configurationes
@@ -381,6 +382,102 @@ void listRegistros(){
 
 }
 
+
+void get_input_nonr(char* input_buf){
+    fgets(input_buf, MAX_PATH, stdin); 
+    input_buf[strcspn(input_buf, "\n")] = '\0';
+    input_buf[strcspn(input_buf, "\r")] = '\0';
+}
+
+int makeDiff(char* registro){
+    char input_buf[MAX_PATH];
+
+    char reg_path[MAX_PATH];
+    char conteudo_path[MAX_PATH];
+    snprintf(reg_path, MAX_PATH, "%s" PATH_SEP_STR "%s", DEST, registro);
+    if (!path_acessible(reg_path)) return 0;
+    snprintf(conteudo_path, MAX_PATH, "%s" PATH_SEP_STR "conteudo" PATH_SEP_STR, reg_path);
+
+    char build_path_a[MAX_PATH];
+    char build_path_b[MAX_PATH];
+
+    while (!path_acessible(build_path_a)){
+        printf("Build principal  ->");
+        get_input_nonr(input_buf);
+        snprintf(build_path_a, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "%s", reg_path, input_buf);
+
+    }
+    while (!path_acessible(build_path_b)){
+        printf("Build analisada  ->");
+        get_input_nonr(input_buf);
+        snprintf(build_path_b, MAX_PATH, "%s" PATH_SEP_STR "build" PATH_SEP_STR "%s", reg_path, input_buf);
+    }
+
+    printf(COR_OK "salvaguarda " RESET "versão " COR_OK "%s " RESET PROG_OS "\n", VER);
+    printf(COR_OK "modo diff\n\n" RESET);
+    DirIt* p = init_dirit(build_path_a, 1);
+    int r;
+    while(r = path_travel(&p)){
+        if (r == 2) continue;
+
+        if (p->is_file){
+            char cur_path[MAX_PATH];
+            snprintf(cur_path, MAX_PATH,"%s%s", build_path_b, p->item_path+strlen(build_path_a));
+            for (int i = 0; i < p->depth; i++) printf("    ");
+            if (path_acessible(cur_path)){
+                printf("%s\n", p->item_name);
+            }
+            else{
+                printf(COR_NOKL"%s\n" RESET, p->item_name);
+            }
+        }
+        if (!p->is_file){
+            for (int i = 1; i < p->depth; i++) printf("    ");
+            printf(COR_OK"/%s\n" RESET, p->item_name);
+        }
+    }
+
+
+    do { 
+        printf("\n");
+        char diff_path_a[MAX_PATH] = {0};
+        char diff_path_b[MAX_PATH] = {0};
+        while (!path_acessible(diff_path_a) || !path_acessible(diff_path_b) || is_folder(diff_path_a) || is_folder(diff_path_b)){
+            printf("Caminho do arquivo ->");
+            get_input_nonr(input_buf);
+            
+            snprintf(diff_path_a, MAX_PATH, "%s" PATH_SEP_STR "%s", build_path_a, input_buf);
+            snprintf(diff_path_b, MAX_PATH, "%s" PATH_SEP_STR "%s", build_path_b, input_buf);
+        }
+        printf("\n");
+        
+        
+        FILE* fa = fopen(diff_path_a, "rb");
+        size_t read_a;
+        char* hash_a;
+        readFile(fa, &read_a, &hash_a);
+        fclose(fa);
+
+
+        FILE* fb = fopen(diff_path_b, "rb");
+        size_t read_b;
+        char* hash_b;
+        readFile(fb, &read_b, &hash_b);
+        fclose(fb);
+
+        snprintf(diff_path_a, MAX_PATH, "%s" PATH_SEP_STR "%s", conteudo_path, hash_a);
+        snprintf(diff_path_b, MAX_PATH, "%s" PATH_SEP_STR "%s", conteudo_path, hash_b);
+        free(hash_a);
+        free(hash_b);
+
+        show_diff(diff_path_b, diff_path_a, MODE_DFT);
+
+        printf("\n");
+    } while(1); 
+
+    return 1;
+}
+
 //Prog
 void init(){
     initSet(&ignore_file_types);
@@ -511,7 +608,12 @@ int main(int argc, char** argv){
             display_dir(build_path, 0, 0 ,1);
             return 0;
         }
-        
+        else if ((startsWith(argv[i], "-diff") == 1)){
+            if(!makeDiff(argv[argc-1])){
+                printf("Registro não existe.");
+            }
+            return 0;
+        } 
         
         //levanta flag
         else if ((startsWith(argv[i], "-load") == 1)){
@@ -535,7 +637,7 @@ int main(int argc, char** argv){
     }
 
 
-    //nao exclusivas
+    //nao exclusivas'
     if ((flags & M_CPYMSG) == M_CPYMSG){
         copy_messages = 1;
     }

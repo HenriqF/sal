@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#define VER "16.06.2026.1"
+#define VER "23.06.2026.2"
 
 #include "set/set.h"
 #include "os/win.h"
@@ -18,12 +18,16 @@
 
 #ifdef COLORLESS
     #define COR_OK "\x1b[0m"
+    #define COR_OKL "\x1b[0m"
     #define COR_NOK "\x1b[0m"
+    #define COR_NOKL "\x1b[0m"
     #define COR_ACC "\x1b[0m"
     #define ORANGE "\x1b[0m"
 #else
     #define COR_OK "\033[97m"
+    #define COR_OKL "\033[92m"
     #define COR_NOK "\033[41m"
+    #define COR_NOKL "\033[91m"
     #define COR_ACC "\x1b[35m"
     #define ORANGE "\x1b[38;5;208m"
 #endif

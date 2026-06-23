@@ -1,15 +1,12 @@
 [build]
     time_start: build
-    run: gcc sal.c util.c set/set.c os/win.c diff/diff.c -o sal.exe -lssl -lcrypto -Wno-format-truncation -Wno-stringop-truncation -g
+    run: gcc sal.c util.c set/set.c os/win.c -o sal.exe -lssl -lcrypto -Wno-format-truncation -Wno-stringop-truncation -g
     time_end: build
-
     end
 
 [cleanup]
     run: del sal.exe
     run: rm -rf C:\Users\henri\Documentos\teste
-    run: del C:\Users\henri\Desktop\teste\aura.txt
-    run: echo wow > C:\Users\henri\Desktop\teste\sigma.txt
     end
 
 
@@ -38,23 +35,22 @@
     end
 
 [pop]
+    run: .\sal.exe -new sigmadabahia
+    run: .\sal.exe -new porra
+    run: .\sal.exe -new salvaguarda
     run: .\sal.exe -new teste
+    run: .\sal.exe -new SDINFASDF.AFNIASDF.ASDFN
+    run: .\sal.exe -new SDINFASDF.AFNIASDF.ASDFNafdsafasdfdgsafs
 
-    run: .\sal.exe -fromC:\Users\henri\Desktop\teste teste
-
-    run: echo wow > C:\Users\henri\Desktop\teste\aura.txt
-    run: del C:\Users\henri\Desktop\teste\sigma.txt
-    run: .\sal.exe -fromC:\Users\henri\Desktop\teste teste
     end
 
 [main]
     goto: build
-    goto: pop
+    run: clear
 
     silent: 0
 
-    run: .\sal.exe -diff teste
-    
+    run: .\sal.exe
     silent: 1
 
     goto: cleanup
